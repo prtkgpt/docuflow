@@ -1,14 +1,16 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, FileText } from "lucide-react";
+import { Menu, X, Cat } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SITE } from "@/lib/site";
 
-const NAV = [
-  { label: "Edit PDF", href: "/tools/edit-pdf" },
-  { label: "Convert", href: "/tools#convert" },
-  { label: "Compress", href: "/tools/compress-pdf" },
-  { label: "AI Tools", href: "/tools#ai" },
+const NAV: { label: string; href: string }[] = [
+  { label: "Tools", href: "/tools" },
+  { label: "Compress PDF", href: "/tools/compress-pdf" },
+  { label: "Convert", href: "/tools/pdf-to-word" },
+  { label: "AI PDF Tools", href: "/tools/ai-pdf-summarizer" },
+  { label: "Blog", href: "/blog" },
   { label: "Pricing", href: "/pricing" },
 ];
 
@@ -19,9 +21,9 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-white shadow-soft">
-            <FileText className="h-5 w-5" />
+            <Cat className="h-5 w-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">DocuFlow</span>
+          <span className="text-lg font-semibold tracking-tight">{SITE.name}</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

@@ -1,13 +1,45 @@
-import { ToolPageLayout } from "@/components/ToolPageLayout";
+import { ToolPage } from "@/components/ToolPageLayout";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Merge PDF Online – Combine PDF Files | MyPDFKitty",
+  description:
+    "Merge multiple PDF files into one document online. Upload, reorder, combine, and download your merged PDF with MyPDFKitty.",
+  path: "/tools/merge-pdf",
+});
 
 export default function Page() {
   return (
-    <ToolPageLayout
-      title="Merge PDF"
-      description="Combine multiple PDFs into a single file. Drag in two or more files to begin."
-      redirectTo="/workspace?tool=merge"
+    <ToolPage
+      slug="merge-pdf"
+      h1="Merge PDF Online"
+      intro="Merge two or more PDFs into a single file in your browser. Drop multiple PDFs, drag to reorder them, and download the combined document."
       multiple
-      steps={["Upload two or more PDFs", "Review the order in the workspace", "Download your merged PDF"]}
+      uploadRedirect="/editor"
+      metaTitle="Merge PDF Online – Combine PDF Files | MyPDFKitty"
+      metaDescription="Merge multiple PDF files into one document online. Upload, reorder, combine, and download your merged PDF with MyPDFKitty."
+      steps={[
+        { name: "Upload PDFs", text: "Drop two or more PDFs onto the upload box. You can also add scans, contracts, or invoices." },
+        { name: "Reorder pages", text: "Use Manage Pages in the editor to reorder, rotate, or remove pages before saving." },
+        { name: "Download the merged PDF", text: "Save one combined PDF you can email or upload anywhere." },
+      ]}
+      whenToUse={[
+        "You're combining receipts or invoices into one expense report.",
+        "You need to send a single PDF to a client instead of three.",
+        "You want to merge a cover letter and resume into one document.",
+        "You're consolidating multi-part scans from a phone or scanner.",
+      ]}
+      relatedToolSlugs={["split-pdf", "compress-pdf", "edit-pdf", "jpg-to-pdf"]}
+      relatedBlogSlugs={[
+        { slug: "how-to-merge-pdf-files", title: "How to merge PDF files online" },
+        { slug: "how-to-compress-a-pdf-for-email", title: "How to compress a PDF for email" },
+      ]}
+      faq={[
+        { q: "How many PDFs can I merge at once?", a: "You can merge as many PDFs as you can upload within your plan's file limit." },
+        { q: "Can I reorder the pages?", a: "Yes. Open the merged file in the editor and use Manage Pages to drag pages into the order you want." },
+        { q: "Is there a watermark on merged PDFs?", a: "No. Merged PDFs are clean — no watermark." },
+        { q: "Will my fonts and formatting be preserved?", a: "Yes. We preserve the original PDF content and only recombine pages." },
+      ]}
     />
   );
 }

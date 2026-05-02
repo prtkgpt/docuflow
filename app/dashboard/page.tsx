@@ -38,7 +38,7 @@ export default async function DashboardPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Overview</h1>
-          <p className="text-slate-600 text-sm">Welcome back to your DocuFlow workspace.</p>
+          <p className="text-slate-600 text-sm">Welcome back to your MyPDFKitty workspace.</p>
         </div>
         <Button asChild><Link href="/#upload">Upload PDF</Link></Button>
       </div>

@@ -475,7 +475,7 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     <div className="flex h-screen flex-col bg-slate-100 select-none">
       {/* Top bar */}
       <div className="flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4">
-        <span className="text-sm font-semibold text-brand-700">DocuFlow</span>
+        <span className="text-sm font-semibold text-brand-700">MyPDFKitty</span>
         <span className="text-slate-300">/</span>
         <span className="truncate text-sm text-slate-700">{fileName}</span>
         <div className="flex-1" />

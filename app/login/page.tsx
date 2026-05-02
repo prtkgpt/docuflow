@@ -39,7 +39,7 @@ export default function LoginPage() {
       <main className="container py-16 grid place-items-center">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Sign in to DocuFlow</CardTitle>
+            <CardTitle>Sign in to MyPDFKitty</CardTitle>
             <CardDescription>Use your email to access your workspace.</CardDescription>
           </CardHeader>
           <CardContent>

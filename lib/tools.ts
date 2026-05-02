@@ -71,7 +71,7 @@ export const TOOLS: Tool[] = [
 
   // AI Tools
   { slug: "ai-summarizer", name: "AI PDF Summarizer", description: "Get short summaries, key points and actions.", href: "/tools/ai-pdf-summarizer", icon: Sparkles, categories: ["ai"], pro: true },
-  { slug: "chat-pdf", name: "Chat with PDF", description: "Ask questions about your document.", href: "/tools/ai-pdf-summarizer?mode=chat", icon: MessagesSquare, categories: ["ai"], pro: true },
+  { slug: "chat-pdf", name: "Chat with PDF", description: "Ask questions about your document.", href: "/tools/chat-with-pdf", icon: MessagesSquare, categories: ["ai"], pro: true },
   { slug: "key-points", name: "Extract Key Points", description: "Pull the most important takeaways.", href: "/tools/ai-pdf-summarizer?mode=keypoints", icon: ListChecks, categories: ["ai"], pro: true },
   { slug: "translate-pdf", name: "Translate PDF", description: "Translate the contents of your PDF.", href: "/tools/ai-pdf-summarizer?mode=translate", icon: Languages, categories: ["ai"], pro: true },
   { slug: "ocr-pdf", name: "OCR PDF", description: "Make scanned PDFs searchable.", href: "/tools/ocr-pdf", icon: ScanText, categories: ["ai"] },

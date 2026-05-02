@@ -1,39 +1,46 @@
 import Link from "next/link";
-import { FileText, Github, Twitter, Linkedin } from "lucide-react";
+import { Cat, Github, Twitter, Linkedin } from "lucide-react";
+import { SITE } from "@/lib/site";
 
 const COLUMNS = [
   {
     title: "Product",
     links: [
-      { label: "All tools", href: "/tools" },
+      { label: "All PDF Tools", href: "/tools" },
+      { label: "AI PDF Summarizer", href: "/tools/ai-pdf-summarizer" },
+      { label: "Chat with PDF", href: "/tools/chat-with-pdf" },
       { label: "Pricing", href: "/pricing" },
       { label: "Workspace", href: "/workspace" },
-      { label: "Dashboard", href: "/dashboard" },
     ],
   },
   {
-    title: "Tools",
+    title: "Popular tools",
     links: [
-      { label: "Edit PDF", href: "/tools/edit-pdf" },
       { label: "Compress PDF", href: "/tools/compress-pdf" },
       { label: "Merge PDF", href: "/tools/merge-pdf" },
+      { label: "Split PDF", href: "/tools/split-pdf" },
+      { label: "Edit PDF", href: "/tools/edit-pdf" },
       { label: "Sign PDF", href: "/tools/sign-pdf" },
-      { label: "AI Summarizer", href: "/tools/ai-pdf-summarizer" },
+      { label: "PDF to Word", href: "/tools/pdf-to-word" },
+      { label: "JPG to PDF", href: "/tools/jpg-to-pdf" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Blog", href: "/blog" },
+      { label: "AI Use Cases", href: "/ai-use-cases" },
+      { label: "Best PDF Tools", href: "/compare/best-free-pdf-tools" },
+      { label: "Security", href: "/security" },
     ],
   },
   {
     title: "Company",
     links: [
       { label: "About", href: "/about" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "Contact", href: "mailto:hello@docuflow.app" },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
+      { label: "Contact", href: `mailto:${SITE.email}` },
     ],
   },
 ];
@@ -45,13 +52,11 @@ export function Footer() {
         <div className="md:col-span-1">
           <Link href="/" className="flex items-center gap-2">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-white">
-              <FileText className="h-5 w-5" />
+              <Cat className="h-5 w-5" />
             </span>
-            <span className="text-lg font-semibold">DocuFlow</span>
+            <span className="text-lg font-semibold">{SITE.name}</span>
           </Link>
-          <p className="mt-3 text-sm text-slate-500">
-            A fast, secure PDF toolkit for everyday documents.
-          </p>
+          <p className="mt-3 text-sm text-slate-500">{SITE.shortDescription}</p>
           <div className="mt-4 flex gap-3 text-slate-400">
             <Link href="#" aria-label="Twitter"><Twitter className="h-5 w-5" /></Link>
             <Link href="#" aria-label="GitHub"><Github className="h-5 w-5" /></Link>
@@ -75,7 +80,7 @@ export function Footer() {
       </div>
       <div className="border-t border-slate-200">
         <div className="container py-6 text-xs text-slate-500 flex justify-between">
-          <span>© {new Date().getFullYear()} DocuFlow. All rights reserved.</span>
+          <span>© {SITE.copyrightYear} {SITE.name}. All rights reserved.</span>
           <span>Made for everyday documents.</span>
         </div>
       </div>

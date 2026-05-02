@@ -10,7 +10,7 @@ export default function BillingPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Billing</h1>
-        <p className="text-sm text-slate-600">Manage your DocuFlow subscription and usage.</p>
+        <p className="text-sm text-slate-600">Manage your MyPDFKitty subscription and usage.</p>
       </div>
       <Card>
         <CardHeader>

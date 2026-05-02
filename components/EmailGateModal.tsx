@@ -52,7 +52,7 @@ export function EmailGateModal({ onClose, onComplete }: Props) {
           <div>
             <h4 className="text-base font-semibold">Enter your email to download</h4>
             <p className="mt-1 text-sm text-slate-600">
-              We&apos;ll save your file in your DocuFlow workspace so you can come back to it any time.
+              We&apos;ll save your file in your MyPDFKitty workspace so you can come back to it any time.
               No password needed.
             </p>
           </div>

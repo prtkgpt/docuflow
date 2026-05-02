@@ -1,4 +1,4 @@
-# DocuFlow
+# MyPDFKitty
 
 An all-in-one PDF SaaS — edit, convert, compress, sign, and summarize PDFs with AI. Built with Next.js 14 (App Router), TypeScript, Tailwind, Prisma + Neon Postgres, Vercel Blob, NextAuth, Stripe, and OpenAI.
 

@@ -1,14 +1,24 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { buildMetadata } from "@/lib/seo";
+import { SITE } from "@/lib/site";
+
+export const metadata = buildMetadata({
+  title: `Privacy Policy | ${SITE.name}`,
+  description: `${SITE.name} privacy policy: what we collect and how we use it.`,
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (
     <>
       <Header />
       <main className="container py-16 max-w-3xl prose prose-slate">
-        <h1 className="text-3xl font-bold">Privacy Policy</h1>
+        <Breadcrumbs items={[{ name: "Privacy", path: "/privacy" }]} />
+        <h1 className="mt-6 text-3xl font-bold">Privacy Policy</h1>
         <p className="mt-4 text-slate-600">
-          This is a placeholder privacy policy for the DocuFlow MVP. Replace with your finalized policy
+          This is a placeholder privacy policy for {SITE.name}. Replace with your finalized policy
           before launch. We collect only what is needed to provide the service: your email, the files
           you upload, and basic usage analytics.
         </p>

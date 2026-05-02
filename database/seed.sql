@@ -1,4 +1,4 @@
--- DocuFlow demo seed data — self-contained.
+-- MyPDFKitty demo seed data — self-contained.
 -- Safe to run on its own: it creates any missing tables first, then inserts demo rows.
 -- All inserts use ON CONFLICT DO NOTHING so re-running is idempotent.
 
@@ -104,14 +104,34 @@ CREATE TABLE IF NOT EXISTS "AIRequest" (
 );
 CREATE INDEX IF NOT EXISTS "AIRequest_userId_idx" ON "AIRequest"("userId");
 
+CREATE TABLE IF NOT EXISTS "BlogPost" (
+  "id"               TEXT PRIMARY KEY,
+  "slug"             TEXT UNIQUE NOT NULL,
+  "title"            TEXT NOT NULL,
+  "description"      TEXT NOT NULL,
+  "category"         TEXT NOT NULL DEFAULT 'PDF editing',
+  "body"             TEXT NOT NULL,
+  "answer"           TEXT,
+  "primaryToolHref"  TEXT,
+  "primaryToolLabel" TEXT,
+  "relatedToolSlugs" TEXT,
+  "faqJson"          TEXT,
+  "published"        BOOLEAN NOT NULL DEFAULT FALSE,
+  "publishedAt"      TIMESTAMP,
+  "authorEmail"      TEXT,
+  "createdAt"        TIMESTAMP NOT NULL DEFAULT NOW(),
+  "updatedAt"        TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS "BlogPost_pub_idx" ON "BlogPost"("published", "publishedAt");
+
 ------------------------------------------------------------------
 -- Demo data
 ------------------------------------------------------------------
 
 INSERT INTO "User" ("id", "name", "email", "image", "createdAt", "updatedAt")
 VALUES
-  ('user_demo_1', 'Demo User',  'demo@docuflow.app',  NULL, NOW(), NOW()),
-  ('user_demo_2', 'Pro Tester', 'pro@docuflow.app',   NULL, NOW(), NOW())
+  ('user_demo_1', 'Demo User',  'demo@mypdfkitty.com',  NULL, NOW(), NOW()),
+  ('user_demo_2', 'Pro Tester', 'pro@mypdfkitty.com',   NULL, NOW(), NOW())
 ON CONFLICT ("email") DO NOTHING;
 
 INSERT INTO "Subscription" ("id", "userId", "plan", "status", "createdAt", "updatedAt")

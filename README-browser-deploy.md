@@ -1,6 +1,6 @@
 # Browser-only deployment guide
 
-This guide walks you through deploying DocuFlow without a terminal, using only the GitHub, Neon, and Vercel web UIs.
+This guide walks you through deploying MyPDFKitty without a terminal, using only the GitHub, Neon, and Vercel web UIs.
 
 ## 1. Push the code to GitHub
 
@@ -12,7 +12,7 @@ This guide walks you through deploying DocuFlow without a terminal, using only t
 
 1. Sign in to [neon.tech](https://neon.tech) and create a new project.
 2. Open the **SQL Editor** for your database.
-3. Paste the contents of [`database/schema.sql`](./database/schema.sql) and click **Run**. This creates every table and index DocuFlow needs.
+3. Paste the contents of [`database/schema.sql`](./database/schema.sql) and click **Run**. This creates every table and index MyPDFKitty needs.
 4. *(Optional)* In a new query, paste [`database/seed.sql`](./database/seed.sql) and click **Run** to add demo users and files. `seed.sql` is self-contained — it re-creates any missing tables (`CREATE TABLE IF NOT EXISTS`), so it's safe to run on its own or after `schema.sql`.
 5. Open **Connection Details** and copy the **pooled connection string** (it ends in `?sslmode=require&pgbouncer=true&connect_timeout=15`). This is your `DATABASE_URL`.
 
@@ -39,7 +39,7 @@ Add the following under **Settings → Environment Variables** (Production, Prev
 | --- | --- | --- |
 | `DATABASE_URL` | yes | Neon **pooled** connection string |
 | `NEXTAUTH_SECRET` | yes | Any random 32+ char string |
-| `NEXTAUTH_URL` | yes | Your Vercel URL, e.g. `https://docuflow.vercel.app` |
+| `NEXTAUTH_URL` | yes | Your Vercel URL, e.g. `https://mypdfkitty.com` |
 | `OPENAI_API_KEY` | optional | Enables AI Summarize / Chat |
 | `STRIPE_SECRET_KEY` | optional | Enables real Stripe checkout |
 | `STRIPE_WEBHOOK_SECRET` | optional | For `/api/stripe/webhook` |
@@ -47,6 +47,7 @@ Add the following under **Settings → Environment Variables** (Production, Prev
 | `NEXT_PUBLIC_STRIPE_BUSINESS_PRICE_ID` | optional | Stripe Business price ID |
 | `UPLOAD_STORAGE_PROVIDER` | yes | `vercel-blob` for production |
 | `BLOB_READ_WRITE_TOKEN` | yes (with Blob) | From step 3 |
+| `ADMIN_EMAILS` | optional | Comma-separated emails allowed into `/master-admin` (the blog CMS) |
 
 ## 6. Deploy
 

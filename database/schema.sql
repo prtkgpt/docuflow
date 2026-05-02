@@ -1,4 +1,4 @@
--- DocuFlow database schema for Neon PostgreSQL.
+-- MyPDFKitty database schema for Neon PostgreSQL.
 -- Paste this into the Neon SQL Editor as an alternative to running Prisma migrations.
 
 CREATE TABLE IF NOT EXISTS "User" (
@@ -98,3 +98,23 @@ CREATE TABLE IF NOT EXISTS "AIRequest" (
   "createdAt"   TIMESTAMP NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS "AIRequest_userId_idx" ON "AIRequest"("userId");
+
+CREATE TABLE IF NOT EXISTS "BlogPost" (
+  "id"               TEXT PRIMARY KEY,
+  "slug"             TEXT UNIQUE NOT NULL,
+  "title"            TEXT NOT NULL,
+  "description"      TEXT NOT NULL,
+  "category"         TEXT NOT NULL DEFAULT 'PDF editing',
+  "body"             TEXT NOT NULL,
+  "answer"           TEXT,
+  "primaryToolHref"  TEXT,
+  "primaryToolLabel" TEXT,
+  "relatedToolSlugs" TEXT,
+  "faqJson"          TEXT,
+  "published"        BOOLEAN NOT NULL DEFAULT FALSE,
+  "publishedAt"      TIMESTAMP,
+  "authorEmail"      TEXT,
+  "createdAt"        TIMESTAMP NOT NULL DEFAULT NOW(),
+  "updatedAt"        TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS "BlogPost_pub_idx" ON "BlogPost"("published", "publishedAt");
