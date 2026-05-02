@@ -103,7 +103,7 @@ type Interaction =
 export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   const [pdf, setPdf] = useState<any>(null);
   const [page, setPage] = useState(1);
-  const [scale, setScale] = useState(1.4);
+  const [scale, setScale] = useState(1.0);
   const [pageSize, setPageSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState(COLORS[0]);
@@ -174,9 +174,10 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     return () => { cancelled = true; };
   }, []);
 
-  // Render active page
+  // Render active page. We include `loading` in deps so the effect re-runs
+  // once the loading skeleton is replaced and the canvas mounts in the DOM.
   useEffect(() => {
-    if (!pdf || !canvasRef.current) return;
+    if (!pdf || loading || !canvasRef.current) return;
     let cancelled = false;
     (async () => {
       const p = await pdf.getPage(page);
@@ -190,7 +191,7 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       await p.render({ canvasContext: ctx, viewport }).promise;
     })();
     return () => { cancelled = true; };
-  }, [pdf, page, scale]);
+  }, [pdf, page, scale, loading]);
 
   // Keyboard delete / escape
   useEffect(() => {
@@ -510,9 +511,9 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
           onClick={() => {
             setLayout((l) => {
               const next = l === "single" ? "fit" : l === "fit" ? "two-up" : "single";
-              if (next === "fit") setScale(1.0);
-              else if (next === "two-up") setScale(0.85);
-              else setScale(1.4);
+              if (next === "fit") setScale(1.2);
+              else if (next === "two-up") setScale(0.7);
+              else setScale(1.0);
               return next;
             });
           }}
