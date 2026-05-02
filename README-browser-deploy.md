@@ -12,8 +12,8 @@ This guide walks you through deploying DocuFlow without a terminal, using only t
 
 1. Sign in to [neon.tech](https://neon.tech) and create a new project.
 2. Open the **SQL Editor** for your database.
-3. Paste the contents of [`database/schema.sql`](./database/schema.sql) and run it. This creates every table and index DocuFlow needs.
-4. *(Optional)* Paste [`database/seed.sql`](./database/seed.sql) and run it to add demo users and files.
+3. Paste the contents of [`database/schema.sql`](./database/schema.sql) and click **Run**. This creates every table and index DocuFlow needs.
+4. *(Optional)* In a new query, paste [`database/seed.sql`](./database/seed.sql) and click **Run** to add demo users and files. `seed.sql` is self-contained — it re-creates any missing tables (`CREATE TABLE IF NOT EXISTS`), so it's safe to run on its own or after `schema.sql`.
 5. Open **Connection Details** and copy the **pooled connection string** (it ends in `?sslmode=require&pgbouncer=true&connect_timeout=15`). This is your `DATABASE_URL`.
 
 > Always use the pooled URL on Vercel — serverless functions create new connections frequently.
