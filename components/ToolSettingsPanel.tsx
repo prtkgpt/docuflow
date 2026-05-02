@@ -37,7 +37,11 @@ export function ToolSettingsPanel({ tool, fileId, extras = [], onProcessed }: Pr
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Request failed");
+      if (!res.ok) {
+        if (data.code === "AUTH_REQUIRED") throw new Error("Sign in to use AI tools. Visit /login.");
+        if (data.code === "PLAN_REQUIRED") throw new Error(`${data.error}. Upgrade in /pricing.`);
+        throw new Error(data.error || "Request failed");
+      }
       return data;
     } catch (e: any) {
       setError(e.message);

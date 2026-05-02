@@ -138,6 +138,8 @@ function uploadOne(file: File, onProgress: (pct: number) => void): Promise<strin
       try {
         const res = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300 && res.id) resolve(res.id);
+        else if (res.code === "PLAN_LIMIT_SIZE")
+          reject(new Error(`${res.error} Upgrade your plan in /pricing to upload larger files.`));
         else reject(new Error(res.error || `Upload failed (${xhr.status})`));
       } catch {
         reject(new Error("Invalid server response"));

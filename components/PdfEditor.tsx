@@ -39,6 +39,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { EmailGateModal } from "@/components/EmailGateModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { ManagePagesModal, type PageOpsState } from "@/components/ManagePagesModal";
+import { getClientSession, type ClientSession } from "@/lib/session-client";
 import type {
   Annotation,
   FontFamily,
@@ -116,6 +120,15 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   const [linkPrompt, setLinkPrompt] = useState<{ x: number; y: number } | null>(null);
   const [showPages, setShowPages] = useState(true);
   const [showManagePages, setShowManagePages] = useState(false);
+  const [pageOps, setPageOps] = useState<PageOpsState>({ order: [], rotations: {} });
+  const [session, setSession] = useState<ClientSession>(null);
+  const [emailGateOpen, setEmailGateOpen] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const [layout, setLayout] = useState<"single" | "fit" | "two-up">("single");
+  const [showSearch, setShowSearch] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchHits, setSearchHits] = useState<{ page: number; text: string }[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -147,11 +160,19 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       }
       if (!cancelled) {
         setThumbnails(thumbs);
+        setPageOps({ order: thumbs.map((_, i) => i + 1), rotations: {} });
         setLoading(false);
       }
     })();
     return () => { cancelled = true; };
   }, [fileUrl]);
+
+  // Lightweight session probe so we know whether to show the email gate.
+  useEffect(() => {
+    let cancelled = false;
+    getClientSession().then((s) => { if (!cancelled) setSession(s); });
+    return () => { cancelled = true; };
+  }, []);
 
   // Render active page
   useEffect(() => {
@@ -378,13 +399,33 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   }
 
   async function save() {
+    // Free flow: require an email before download. We re-check the session
+    // each time in case the user signed in another tab.
+    const fresh = session ?? (await getClientSession());
+    setSession(fresh);
+    if (!fresh?.user) {
+      setEmailGateOpen(true);
+      return;
+    }
+    await runSave();
+  }
+
+  async function runSave() {
     setSaving(true);
     try {
       const cleaned = annotations.filter((a) => !(a.type === "text" && a.text.trim() === ""));
+      // Only send pageOps when the user actually changed something
+      const reordered = pageOps.order.length > 0 &&
+        (pageOps.order.length !== thumbnails.length ||
+          pageOps.order.some((p, i) => p !== i + 1) ||
+          Object.values(pageOps.rotations).some((r) => r && r !== 0));
+      const body: any = { fileId, annotations: cleaned };
+      if (reordered) body.pageOps = { keep: pageOps.order, rotate: pageOps.rotations };
+
       const res = await fetch("/api/tools/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId, annotations: cleaned }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
@@ -394,6 +435,25 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function runSearch(q: string) {
+    setSearchQuery(q);
+    if (!q.trim() || !pdf) return setSearchHits([]);
+    const lower = q.toLowerCase();
+    const hits: { page: number; text: string }[] = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const p = await pdf.getPage(i);
+      const content = await p.getTextContent();
+      const pageText = content.items.map((it: any) => ("str" in it ? it.str : "")).join(" ");
+      const idx = pageText.toLowerCase().indexOf(lower);
+      if (idx >= 0) {
+        const start = Math.max(0, idx - 30);
+        const end = Math.min(pageText.length, idx + q.length + 30);
+        hits.push({ page: i, text: "…" + pageText.slice(start, end).trim() + "…" });
+      }
+    }
+    setSearchHits(hits);
   }
 
   async function share() {
@@ -418,7 +478,7 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
         <span className="text-slate-300">/</span>
         <span className="truncate text-sm text-slate-700">{fileName}</span>
         <div className="flex-1" />
-        <Button variant="ghost" size="icon" aria-label="Search" title="Search"><Search className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" aria-label="Search" title="Search" onClick={() => setShowSearch(true)}><Search className="h-4 w-4" /></Button>
         <Button variant="ghost" size="icon" aria-label="Print" title="Print" onClick={() => window.print()}><Printer className="h-4 w-4" /></Button>
         <Button variant="ghost" size="icon" aria-label="Download" title="Download" onClick={save}><Download className="h-4 w-4" /></Button>
         <Button variant="outline" onClick={share}><Share2 className="h-4 w-4" /> Share</Button>
@@ -446,8 +506,40 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
         ))}
         <Divider />
         <RibbonButton onClick={() => setShowManagePages(true)} icon={LayoutGrid} label="Pages" />
-        <RibbonButton onClick={() => alert("Coming soon")} icon={FileText} label="Layout" />
-        <RibbonButton onClick={() => alert("Coming soon")} icon={MoreHorizontal} label="More" />
+        <RibbonButton
+          onClick={() => {
+            setLayout((l) => {
+              const next = l === "single" ? "fit" : l === "fit" ? "two-up" : "single";
+              if (next === "fit") setScale(1.0);
+              else if (next === "two-up") setScale(0.85);
+              else setScale(1.4);
+              return next;
+            });
+          }}
+          icon={FileText}
+          label={layout === "single" ? "Single" : layout === "two-up" ? "Two-up" : "Fit width"}
+        />
+        <div className="relative">
+          <RibbonButton onClick={() => setShowMoreMenu((m) => !m)} icon={MoreHorizontal} label="More" />
+          {showMoreMenu && (
+            <div className="absolute right-0 top-full z-30 mt-1 w-56 rounded-xl border border-slate-200 bg-white shadow-soft p-1 text-sm">
+              {[
+                { label: "Manage pages", onClick: () => { setShowMoreMenu(false); setShowManagePages(true); } },
+                { label: "Find text", onClick: () => { setShowMoreMenu(false); setShowSearch(true); } },
+                { label: "Reset all annotations", onClick: () => { setShowMoreMenu(false); pushHistory([]); } },
+                { label: "Reset page order", onClick: () => { setShowMoreMenu(false); setPageOps({ order: thumbnails.map((_, i) => i + 1), rotations: {} }); } },
+              ].map((it) => (
+                <button
+                  key={it.label}
+                  onClick={it.onClick}
+                  className="block w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100"
+                >
+                  {it.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Contextual property bar */}
@@ -695,8 +787,87 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       )}
 
       {showManagePages && (
-        <ManagePagesDialog thumbnails={thumbnails} onClose={() => setShowManagePages(false)} onJump={(p) => { setPage(p); setShowManagePages(false); }} />
+        <ManagePagesModal
+          thumbnails={thumbnails}
+          state={pageOps.order.length > 0 ? pageOps : { order: thumbnails.map((_, i) => i + 1), rotations: {} }}
+          onClose={() => setShowManagePages(false)}
+          onApply={(next) => { setPageOps(next); setShowManagePages(false); }}
+        />
       )}
+
+      {emailGateOpen && (
+        <EmailGateModal
+          onClose={() => setEmailGateOpen(false)}
+          onComplete={async () => {
+            setEmailGateOpen(false);
+            setSession(await getClientSession());
+            await runSave();
+          }}
+        />
+      )}
+
+      <UpgradeModal
+        open={!!upgradeReason}
+        onClose={() => setUpgradeReason(null)}
+        reason={upgradeReason ?? undefined}
+      />
+
+      {showSearch && (
+        <SearchModal
+          q={searchQuery}
+          hits={searchHits}
+          onClose={() => setShowSearch(false)}
+          onChange={runSearch}
+          onJump={(p) => { setPage(p); setShowSearch(false); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function SearchModal({
+  q,
+  hits,
+  onChange,
+  onClose,
+  onJump,
+}: {
+  q: string;
+  hits: { page: number; text: string }[];
+  onChange: (q: string) => void;
+  onClose: () => void;
+  onJump: (page: number) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-start bg-black/40 p-4 pt-24">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-soft">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+          <h3 className="font-semibold">Find in document</h3>
+          <button onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Search text…"
+            className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          />
+          <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+            {q.trim() && hits.length === 0 && <p className="text-sm text-slate-500">No matches.</p>}
+            {hits.map((h, i) => (
+              <button
+                key={i}
+                onClick={() => onJump(h.page)}
+                className="block w-full text-left py-2 hover:bg-slate-50"
+              >
+                <div className="text-xs font-medium text-brand-700">Page {h.page}</div>
+                <div className="text-sm text-slate-700 line-clamp-2">{h.text}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1209,36 +1380,6 @@ function LinkDialog({
       <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-3">
         <Button variant="outline" onClick={onClose}>Cancel</Button>
         <Button onClick={() => onSubmit(url.trim())}>Add link</Button>
-      </div>
-    </Modal>
-  );
-}
-
-function ManagePagesDialog({
-  thumbnails,
-  onClose,
-  onJump,
-}: {
-  thumbnails: string[];
-  onClose: () => void;
-  onJump: (page: number) => void;
-}) {
-  return (
-    <Modal title="Manage pages" onClose={onClose} wide>
-      <div className="p-5 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 max-h-[70vh] overflow-y-auto">
-        {thumbnails.map((src, i) => (
-          <button
-            key={i}
-            onClick={() => onJump(i + 1)}
-            className="block w-full rounded-lg border-2 border-slate-200 hover:border-brand-500 overflow-hidden"
-          >
-            <img src={src} alt={`Page ${i + 1}`} className="block w-full" />
-            <div className="text-xs text-slate-600 py-1">Page {i + 1}</div>
-          </button>
-        ))}
-      </div>
-      <div className="border-t border-slate-200 px-5 py-3 text-xs text-slate-500">
-        Reorder, delete, and rotate are coming in a future update.
       </div>
     </Modal>
   );

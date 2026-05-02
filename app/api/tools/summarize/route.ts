@@ -6,6 +6,7 @@ import { loadFile } from "@/lib/process";
 import { extractPdfText } from "@/lib/pdf/extract-text";
 import { summarizeText } from "@/lib/ai/summarize";
 import { prisma } from "@/lib/db";
+import { getUserQuota } from "@/lib/quotas";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -15,6 +16,19 @@ const Body = z.object({ fileId: z.string() });
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions).catch(() => null);
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Sign in to use AI tools", code: "AUTH_REQUIRED" },
+      { status: 401 },
+    );
+  }
+  const quota = await getUserQuota(userId);
+  if (!quota.aiAllowed) {
+    return NextResponse.json(
+      { error: "AI tools require a Pro or Business plan", code: "PLAN_REQUIRED", plan: quota.plan },
+      { status: 402 },
+    );
+  }
   try {
     const { fileId } = Body.parse(await req.json());
     const { file, buffer } = await loadFile(fileId);

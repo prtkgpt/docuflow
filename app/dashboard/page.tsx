@@ -1,19 +1,23 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatBytes } from "@/lib/utils";
+import { getUserQuota } from "@/lib/quotas";
+import { getPlan } from "@/lib/plans";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
-async function getStats() {
-  // For the MVP we show aggregate stats (no auth wall yet on dashboard).
+async function getStats(userId: string | null) {
   try {
+    const where = userId ? { userId } : {};
     const [fileCount, recent, toolUsage, totalSize] = await Promise.all([
-      prisma.file.count(),
-      prisma.file.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
-      prisma.toolUsage.groupBy({ by: ["toolType"], _count: { _all: true } }),
-      prisma.file.aggregate({ _sum: { size: true } }),
+      prisma.file.count({ where }),
+      prisma.file.findMany({ where, orderBy: { createdAt: "desc" }, take: 5 }),
+      prisma.toolUsage.groupBy({ where, by: ["toolType"], _count: { _all: true } }),
+      prisma.file.aggregate({ where, _sum: { size: true } }),
     ]);
     return { fileCount, recent, toolUsage, totalSize: totalSize._sum.size || 0 };
   } catch {
@@ -22,7 +26,13 @@ async function getStats() {
 }
 
 export default async function DashboardPage() {
-  const stats = await getStats();
+  const session = await getServerSession(authOptions).catch(() => null);
+  const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+  const stats = await getStats(userId);
+  const quota = await getUserQuota(userId);
+  const plan = getPlan(quota.plan);
+  const usagePct = Math.min(100, Math.round((quota.monthlyUsed / Math.max(1, quota.monthlyFiles)) * 100));
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -36,6 +46,23 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
+            <CardDescription>Plan</CardDescription>
+            <CardTitle className="capitalize">{plan.name}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="text-sm text-slate-600">
+              {quota.monthlyUsed} / {quota.monthlyFiles} files this month
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+              <div className="h-full bg-brand-600" style={{ width: `${usagePct}%` }} />
+            </div>
+            {quota.plan !== "business" && (
+              <Button asChild variant="outline" size="sm"><Link href="/pricing">Upgrade</Link></Button>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
             <CardDescription>Files uploaded</CardDescription>
             <CardTitle>{stats.fileCount}</CardTitle>
           </CardHeader>
@@ -45,15 +72,6 @@ export default async function DashboardPage() {
             <CardDescription>Storage used</CardDescription>
             <CardTitle>{formatBytes(stats.totalSize)}</CardTitle>
           </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Subscription</CardDescription>
-            <CardTitle>Free</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" size="sm"><Link href="/pricing">Upgrade</Link></Button>
-          </CardContent>
         </Card>
       </div>
 

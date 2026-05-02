@@ -1,6 +1,7 @@
-import { PDFDocument, PDFFont, StandardFonts, rgb } from "pdf-lib";
+import { PDFArray, PDFDocument, PDFFont, PDFName, PDFString, StandardFonts, rgb } from "pdf-lib";
 import { toUint8 } from "@/lib/bytes";
 import type { Annotation, FontFamily, TextAnnotation } from "./annotations";
+import { applyPageOps, type PageOps } from "./page-ops";
 
 function hexToRgb(hex: string) {
   const m = hex.replace("#", "").match(/.{1,2}/g) || ["00", "00", "00"];
@@ -49,21 +50,40 @@ function pickFont(fonts: Record<FontFamily, FontSet>, a: TextAnnotation): PDFFon
 
 // Bake annotations onto each page of the PDF. Coordinates are normalized to
 // the page (top-left origin); pdf-lib uses bottom-left origin so we flip Y.
+// If pageOps is provided, page-level reorder/delete/rotate are applied first
+// and annotations are remapped to the new page indices.
 export async function bakeAnnotations(
   buffer: Buffer | Uint8Array,
   annotations: Annotation[],
+  pageOps?: PageOps,
 ): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(toUint8(buffer), { ignoreEncryption: true });
-  const pageCount = doc.getPageCount();
+  const source = await PDFDocument.load(toUint8(buffer), { ignoreEncryption: true });
 
+  let doc: PDFDocument;
+  let oldToNew: Map<number, number[]>;
+  if (pageOps && ((pageOps.keep && pageOps.keep.length > 0) || pageOps.rotate)) {
+    const r = await applyPageOps(source, pageOps);
+    doc = r.doc;
+    oldToNew = r.oldToNew;
+  } else {
+    doc = source;
+    oldToNew = new Map();
+    for (let i = 1; i <= source.getPageCount(); i++) oldToNew.set(i, [i]);
+  }
+
+  const pageCount = doc.getPageCount();
   const fonts = await buildFonts(doc);
 
+  // Remap annotations from source-page indices to target-page indices
   const grouped = new Map<number, Annotation[]>();
   for (const a of annotations) {
-    if (a.page < 1 || a.page > pageCount) continue;
-    const arr = grouped.get(a.page) ?? [];
-    arr.push(a);
-    grouped.set(a.page, arr);
+    const targets = oldToNew.get(a.page) ?? [];
+    for (const tp of targets) {
+      if (tp < 1 || tp > pageCount) continue;
+      const arr = grouped.get(tp) ?? [];
+      arr.push(a);
+      grouped.set(tp, arr);
+    }
   }
 
   for (const [pageNum, anns] of grouped) {
@@ -225,27 +245,37 @@ export async function bakeAnnotations(
         }
 
         case "link": {
-          // Visual border + bottom underline as a clickable hint. Embedding a
-          // real PDF link annotation requires lower-level pdf-lib API; we
-          // surface the URL as visible text underneath so the link is usable.
+          // Faint visual border so users see where the link lives.
           page.drawRectangle({
             x: toX(a.x),
             y: toY(a.y + a.h),
             width: a.w * W,
             height: a.h * H,
             borderColor: hexToRgb(a.color),
-            borderWidth: 0.8,
+            borderWidth: 0.6,
             opacity: 0.001,
           });
-          if (a.url) {
-            page.drawText(a.url, {
-              x: toX(a.x),
-              y: toY(a.y + a.h) - 10,
-              size: 8,
-              font: fonts.helvetica.regular,
-              color: hexToRgb(a.color),
-            });
+          if (!a.url) break;
+
+          // Embed an actual PDF Link annotation so PDF readers make the
+          // rectangle clickable and open the URL.
+          const x1 = toX(a.x);
+          const y1 = toY(a.y + a.h);
+          const x2 = toX(a.x + a.w);
+          const y2 = toY(a.y);
+          const linkAnnot = doc.context.obj({
+            Type: "Annot",
+            Subtype: "Link",
+            Rect: [x1, y1, x2, y2],
+            Border: [0, 0, 0],
+            A: { Type: "Action", S: "URI", URI: PDFString.of(a.url) },
+          });
+          let annots = page.node.lookup(PDFName.of("Annots"), PDFArray);
+          if (!annots) {
+            annots = doc.context.obj([]) as PDFArray;
+            page.node.set(PDFName.of("Annots"), annots);
           }
+          annots.push(linkAnnot);
           break;
         }
       }
