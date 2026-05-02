@@ -40,13 +40,13 @@ export type Tool = {
 
 export const TOOLS: Tool[] = [
   // Edit & Sign
-  { slug: "edit-pdf", name: "Edit PDF", description: "Edit text, images and pages in your PDF.", href: "/tools/edit-pdf", icon: FileEdit, categories: ["edit"] },
+  { slug: "edit-pdf", name: "Edit PDF", description: "Add text, images, highlights and more.", href: "/tools/edit-pdf", icon: FileEdit, categories: ["edit"] },
   { slug: "compress-pdf", name: "Compress PDF", description: "Shrink PDFs while keeping quality.", href: "/tools/compress-pdf", icon: FileArchive, categories: ["edit"] },
   { slug: "merge-pdf", name: "Merge PDF", description: "Combine multiple PDFs into one file.", href: "/tools/merge-pdf", icon: FilesIcon, categories: ["edit"] },
   { slug: "split-pdf", name: "Split PDF", description: "Extract pages or split into multiple PDFs.", href: "/tools/split-pdf", icon: Scissors, categories: ["edit"] },
   { slug: "rotate-pdf", name: "Rotate PDF", description: "Rotate selected pages 90, 180 or 270 degrees.", href: "/workspace?tool=rotate", icon: RotateCw, categories: ["edit"] },
   { slug: "sign-pdf", name: "Sign PDF", description: "Add typed, drawn, or uploaded signatures.", href: "/tools/sign-pdf", icon: PenTool, categories: ["edit"] },
-  { slug: "annotate-pdf", name: "Annotate PDF", description: "Add notes, highlights and text boxes.", href: "/workspace?tool=annotate", icon: Highlighter, categories: ["edit"] },
+  { slug: "annotate-pdf", name: "Annotate PDF", description: "Add notes, highlights and text boxes.", href: "/editor", icon: Highlighter, categories: ["edit"] },
   { slug: "delete-pages", name: "Delete Pages", description: "Remove pages you don't need.", href: "/workspace?tool=delete", icon: Trash2, categories: ["edit"] },
   { slug: "extract-pages", name: "Extract Pages", description: "Pull selected pages into a new PDF.", href: "/workspace?tool=extract", icon: FileOutput, categories: ["edit"] },
   { slug: "organize-pdf", name: "Organize PDF", description: "Reorder, rotate and remove pages visually.", href: "/workspace?tool=organize", icon: Layers, categories: ["edit"] },

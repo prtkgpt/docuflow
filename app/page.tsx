@@ -36,7 +36,7 @@ export default function HomePage() {
             </div>
           </div>
           <div>
-            <UploadDropzone redirectTo="/workspace" buttonLabel="Choose PDF" />
+            <UploadDropzone redirectTo="/editor" buttonLabel="Choose PDF" />
           </div>
         </div>
       </section>

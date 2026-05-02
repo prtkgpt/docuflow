@@ -4,8 +4,9 @@ export default function Page() {
   return (
     <ToolPageLayout
       title="Edit PDF"
-      description="Upload a PDF and edit text, images, signatures, and pages directly in your browser."
-      redirectTo="/workspace?tool=annotate"
+      description="Add text, highlights, signatures, images, and more — all in your browser."
+      redirectTo="/editor"
+      bullets={["Add text & highlights", "Draw or type signatures", "Insert images, checks, X marks", "Save as flat PDF"]}
     />
   );
 }
