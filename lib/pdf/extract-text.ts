@@ -1,4 +1,5 @@
 import { PDFDocument } from "pdf-lib";
+import { toUint8 } from "@/lib/bytes";
 
 // Lightweight server-side text extractor. We use pdfjs-dist's legacy build
 // which works in Node without a DOM. If extraction fails (image-only PDFs)
@@ -8,8 +9,9 @@ export async function extractPdfText(buffer: Buffer | Uint8Array): Promise<{
   pageTexts: string[];
   pageCount: number;
 }> {
+  const data = toUint8(buffer);
   // Quickly read page count via pdf-lib (cheap and reliable).
-  const meta = await PDFDocument.load(buffer as Uint8Array, { ignoreEncryption: true });
+  const meta = await PDFDocument.load(data, { ignoreEncryption: true });
   const pageCount = meta.getPageCount();
 
   let pdfjs: any;
@@ -18,8 +20,6 @@ export async function extractPdfText(buffer: Buffer | Uint8Array): Promise<{
   } catch {
     return { text: "", pageTexts: Array(pageCount).fill(""), pageCount };
   }
-
-  const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   const loadingTask = pdfjs.getDocument({ data, useSystemFonts: true, isEvalSupported: false });
   const pdf = await loadingTask.promise;
 
