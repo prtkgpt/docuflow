@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MousePointer2,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,12 @@ const TOOLS: { id: Tool; label: string; icon: any }[] = [
 
 const COLORS = ["#111827", "#ef4444", "#2563eb", "#f59e0b", "#10b981"];
 
+type Interaction =
+  | { kind: "create-rect"; id: string; startX: number; startY: number }
+  | { kind: "create-pencil"; id: string }
+  | { kind: "move"; id: string; offX: number; offY: number; orig: Annotation }
+  | { kind: "resize"; id: string; corner: "nw" | "ne" | "sw" | "se"; orig: Annotation };
+
 export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   const [pdf, setPdf] = useState<any>(null);
   const [page, setPage] = useState(1);
@@ -64,18 +71,20 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   const [fontSize, setFontSize] = useState(16);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [history, setHistory] = useState<Annotation[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [signPrompt, setSignPrompt] = useState(false);
+  const [signPrompt, setSignPrompt] = useState<{ x: number; y: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const interactionRef = useRef<Interaction | null>(null);
 
-  // Load the PDF once
+  // Load PDF + thumbnails -------------------------------------------------
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -87,7 +96,6 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       if (cancelled) return;
       setPdf(loaded);
       setPage(1);
-      // Render thumbnails (small, sequentially to avoid spikes)
       const thumbs: string[] = [];
       for (let i = 1; i <= loaded.numPages; i++) {
         const p = await loaded.getPage(i);
@@ -104,12 +112,10 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
         setLoading(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [fileUrl]);
 
-  // Render the active page
+  // Render active page ----------------------------------------------------
   useEffect(() => {
     if (!pdf || !canvasRef.current) return;
     let cancelled = false;
@@ -124,10 +130,24 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       setPageSize({ w: viewport.width, h: viewport.height });
       await p.render({ canvasContext: ctx, viewport }).promise;
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [pdf, page, scale]);
+
+  // Keyboard delete / escape ---------------------------------------------
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (editingTextId) return; // let typing happen
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
+        e.preventDefault();
+        deleteAnnotation(selectedId);
+      } else if (e.key === "Escape") {
+        setSelectedId(null);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, editingTextId]);
 
   function pushHistory(next: Annotation[]) {
     const trimmed = history.slice(0, historyIndex + 1);
@@ -136,7 +156,6 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     setHistoryIndex(trimmed.length - 1);
     setAnnotations(next);
   }
-
   function undo() {
     if (historyIndex <= 0) return;
     const i = historyIndex - 1;
@@ -144,7 +163,6 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     setAnnotations(history[i]);
     setSelectedId(null);
   }
-
   function redo() {
     if (historyIndex >= history.length - 1) return;
     const i = historyIndex + 1;
@@ -152,30 +170,29 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     setAnnotations(history[i]);
     setSelectedId(null);
   }
-
-  function addAnnotation(a: Annotation) {
+  function addAnnotation(a: Annotation, opts?: { startEditing?: boolean }) {
     pushHistory([...annotations, a]);
     setSelectedId(a.id);
+    if (opts?.startEditing) setEditingTextId(a.id);
   }
-
   function deleteAnnotation(id: string) {
     pushHistory(annotations.filter((a) => a.id !== id));
     if (selectedId === id) setSelectedId(null);
   }
+  function updateAnnotation(id: string, patch: (a: Annotation) => Annotation) {
+    setAnnotations((prev) => prev.map((a) => (a.id === id ? patch(a) : a)));
+  }
+  function commitInteraction() {
+    // Snapshot the live annotations into history
+    const trimmed = history.slice(0, historyIndex + 1);
+    trimmed.push(annotations);
+    setHistory(trimmed);
+    setHistoryIndex(trimmed.length - 1);
+    interactionRef.current = null;
+  }
 
-  // Mouse handlers ---------------------------------------------------------
-
-  const dragRef = useRef<
-    | null
-    | {
-        kind: "rect" | "pencil";
-        startX: number;
-        startY: number;
-        currentId: string;
-      }
-  >(null);
-
-  function rel(e: React.MouseEvent) {
+  // Coordinates -----------------------------------------------------------
+  function rel(e: React.MouseEvent | MouseEvent) {
     const rect = overlayRef.current!.getBoundingClientRect();
     return {
       x: (e.clientX - rect.left) / rect.width,
@@ -183,28 +200,24 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     };
   }
 
+  // Overlay mouse handlers (creation + global drag) -----------------------
   function onOverlayMouseDown(e: React.MouseEvent) {
     if (loading || pageSize.w === 0) return;
-    const { x, y } = rel(e);
+    // Click on empty canvas always deselects (unless we're starting a creation)
+    setSelectedId(null);
+    setEditingTextId(null);
 
+    const { x, y } = rel(e);
     if (tool === "select" || tool === "eraser") return;
 
     if (tool === "text") {
-      const text = window.prompt("Enter text:", "");
-      if (!text) return;
-      addAnnotation({
-        id: crypto.randomUUID(),
-        type: "text",
-        page,
-        x,
-        y,
-        text,
-        fontSize,
-        color,
-      });
+      const id = crypto.randomUUID();
+      addAnnotation(
+        { id, type: "text", page, x, y, text: "", fontSize, color },
+        { startEditing: true },
+      );
       return;
     }
-
     if (tool === "check" || tool === "cross") {
       addAnnotation({
         id: crypto.randomUUID(),
@@ -217,95 +230,105 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       });
       return;
     }
-
     if (tool === "image") {
       fileInputRef.current?.setAttribute("data-x", String(x));
       fileInputRef.current?.setAttribute("data-y", String(y));
       fileInputRef.current?.click();
       return;
     }
-
     if (tool === "sign") {
-      setSignPrompt(true);
-      // store x/y in a ref-like attribute on the overlay
-      overlayRef.current!.dataset.signX = String(x);
-      overlayRef.current!.dataset.signY = String(y);
+      setSignPrompt({ x, y });
       return;
     }
-
     if (tool === "highlight") {
       const id = crypto.randomUUID();
       const a: Annotation = {
-        id,
-        type: "highlight",
-        page,
-        x,
-        y,
-        w: 0.001,
-        h: 0.001,
-        color,
+        id, type: "highlight", page, x, y, w: 0.001, h: 0.001, color,
       };
       pushHistory([...annotations, a]);
-      dragRef.current = { kind: "rect", startX: x, startY: y, currentId: id };
+      interactionRef.current = { kind: "create-rect", id, startX: x, startY: y };
       return;
     }
-
     if (tool === "pencil") {
       const id = crypto.randomUUID();
-      const a: Annotation = {
-        id,
-        type: "pencil",
-        page,
-        points: [[x, y]],
-        color,
-        width: 2,
-      };
+      const a: Annotation = { id, type: "pencil", page, points: [[x, y]], color, width: 2 };
       pushHistory([...annotations, a]);
-      dragRef.current = { kind: "pencil", startX: x, startY: y, currentId: id };
+      interactionRef.current = { kind: "create-pencil", id };
       return;
     }
   }
 
   function onOverlayMouseMove(e: React.MouseEvent) {
-    if (!dragRef.current) return;
+    const ia = interactionRef.current;
+    if (!ia) return;
     const { x, y } = rel(e);
-    setAnnotations((prev) =>
-      prev.map((a) => {
-        if (a.id !== dragRef.current!.currentId) return a;
-        if (a.type === "highlight" && dragRef.current!.kind === "rect") {
-          const sx = dragRef.current!.startX;
-          const sy = dragRef.current!.startY;
-          return { ...a, x: Math.min(sx, x), y: Math.min(sy, y), w: Math.abs(x - sx), h: Math.abs(y - sy) };
-        }
-        if (a.type === "pencil" && dragRef.current!.kind === "pencil") {
-          return { ...a, points: [...a.points, [x, y]] };
-        }
-        return a;
-      }),
-    );
+
+    if (ia.kind === "create-rect") {
+      updateAnnotation(ia.id, (a) =>
+        a.type === "highlight"
+          ? {
+              ...a,
+              x: Math.min(ia.startX, x),
+              y: Math.min(ia.startY, y),
+              w: Math.abs(x - ia.startX),
+              h: Math.abs(y - ia.startY),
+            }
+          : a,
+      );
+      return;
+    }
+    if (ia.kind === "create-pencil") {
+      updateAnnotation(ia.id, (a) =>
+        a.type === "pencil" ? { ...a, points: [...a.points, [x, y]] } : a,
+      );
+      return;
+    }
+    if (ia.kind === "move") {
+      const dx = x - ia.offX;
+      const dy = y - ia.offY;
+      updateAnnotation(ia.id, (a) => moveAnnotation(a, ia.orig, dx, dy));
+      return;
+    }
+    if (ia.kind === "resize") {
+      updateAnnotation(ia.id, (a) => resizeAnnotation(a, ia.orig, ia.corner, x, y));
+    }
   }
 
   function onOverlayMouseUp() {
-    if (!dragRef.current) return;
-    // Commit current state into history (we mutated annotations directly during drag)
-    const trimmed = history.slice(0, historyIndex + 1);
-    trimmed[historyIndex] = annotations;
-    trimmed.push(annotations);
-    setHistory(trimmed);
-    setHistoryIndex(trimmed.length - 1);
-    dragRef.current = null;
+    if (!interactionRef.current) return;
+    commitInteraction();
   }
 
-  function onAnnotationClick(e: React.MouseEvent, a: Annotation) {
+  // Annotation interactions (move + resize when in select mode) ----------
+  function onAnnotationMouseDown(e: React.MouseEvent, a: Annotation) {
     e.stopPropagation();
     if (tool === "eraser") {
       deleteAnnotation(a.id);
       return;
     }
+    if (tool !== "select") return;
     setSelectedId(a.id);
+    setEditingTextId(null);
+    const { x, y } = rel(e);
+    interactionRef.current = {
+      kind: "move",
+      id: a.id,
+      offX: x,
+      offY: y,
+      orig: a,
+    };
   }
 
-  // Image upload (placed at the dataset coords)
+  function onResizeHandleMouseDown(
+    e: React.MouseEvent,
+    a: Annotation,
+    corner: "nw" | "ne" | "sw" | "se",
+  ) {
+    e.stopPropagation();
+    interactionRef.current = { kind: "resize", id: a.id, corner, orig: a };
+  }
+
+  // Image upload (placed at dataset coords) ------------------------------
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -318,27 +341,22 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     const x = parseFloat(fileInputRef.current?.dataset.x || "0.1");
     const y = parseFloat(fileInputRef.current?.dataset.y || "0.1");
     addAnnotation({
-      id: crypto.randomUUID(),
-      type: "image",
-      page,
-      x,
-      y,
-      w: 0.2,
-      h: 0.15,
-      dataUrl,
+      id: crypto.randomUUID(), type: "image", page, x, y, w: 0.2, h: 0.15, dataUrl,
     });
     e.target.value = "";
   }
 
-  // Save -------------------------------------------------------------------
-
+  // Save -----------------------------------------------------------------
   async function save() {
     setSaving(true);
     try {
+      const cleaned = annotations.filter(
+        (a) => !(a.type === "text" && a.text.trim() === ""),
+      );
       const res = await fetch("/api/tools/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId, annotations }),
+        body: JSON.stringify({ fileId, annotations: cleaned }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
@@ -350,13 +368,13 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
     }
   }
 
-  // Render -----------------------------------------------------------------
-
+  // ---------------------------------------------------------------------
   const visible = useMemo(() => annotations.filter((a) => a.page === page), [annotations, page]);
   const total = pdf?.numPages ?? 0;
+  const selected = visible.find((a) => a.id === selectedId) || null;
 
   return (
-    <div className="flex h-screen flex-col bg-slate-100">
+    <div className="flex h-screen flex-col bg-slate-100 select-none">
       {/* Top toolbar */}
       <div className="flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4">
         <span className="text-sm font-semibold text-brand-700">DocuFlow</span>
@@ -396,7 +414,12 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
           {COLORS.map((c) => (
             <button
               key={c}
-              onClick={() => setColor(c)}
+              onClick={() => {
+                setColor(c);
+                if (selected && "color" in selected) {
+                  pushHistory(annotations.map((a) => (a.id === selected.id ? ({ ...a, color: c } as Annotation) : a)));
+                }
+              }}
               aria-label={`Color ${c}`}
               className={cn(
                 "h-6 w-6 rounded-full border-2 transition-transform",
@@ -406,7 +429,7 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
             />
           ))}
         </div>
-        {tool === "text" && (
+        {(tool === "text" || (selected && selected.type === "text")) && (
           <>
             <div className="mx-2 h-8 w-px bg-slate-200" />
             <label className="text-xs text-slate-500">Size</label>
@@ -414,10 +437,24 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
               type="number"
               min={8}
               max={72}
-              value={fontSize}
-              onChange={(e) => setFontSize(parseInt(e.target.value || "16", 10))}
+              value={selected && selected.type === "text" ? selected.fontSize : fontSize}
+              onChange={(e) => {
+                const v = parseInt(e.target.value || "16", 10);
+                setFontSize(v);
+                if (selected && selected.type === "text") {
+                  pushHistory(annotations.map((a) => (a.id === selected.id && a.type === "text" ? { ...a, fontSize: v } : a)));
+                }
+              }}
               className="h-8 w-16 rounded-lg border border-slate-200 px-2 text-sm"
             />
+          </>
+        )}
+        {selected && (
+          <>
+            <div className="mx-2 h-8 w-px bg-slate-200" />
+            <Button variant="outline" size="sm" onClick={() => deleteAnnotation(selected.id)}>
+              <Trash2 className="h-4 w-4" /> Delete
+            </Button>
           </>
         )}
       </div>
@@ -479,7 +516,9 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
                   onMouseLeave={onOverlayMouseUp}
                   className={cn(
                     "absolute inset-0",
-                    tool !== "select" && tool !== "eraser" ? "cursor-crosshair" : "cursor-default",
+                    tool === "select" ? "cursor-default" :
+                    tool === "eraser" ? "cursor-not-allowed" :
+                    "cursor-crosshair",
                   )}
                   style={{ width: pageSize.w, height: pageSize.h }}
                 >
@@ -488,8 +527,23 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
                       key={a.id}
                       a={a}
                       pageSize={pageSize}
+                      tool={tool}
                       selected={selectedId === a.id}
-                      onClick={(e) => onAnnotationClick(e, a)}
+                      editing={editingTextId === a.id}
+                      onMouseDown={(e) => onAnnotationMouseDown(e, a)}
+                      onResizeMouseDown={(e, c) => onResizeHandleMouseDown(e, a, c)}
+                      onTextChange={(text) => updateAnnotation(a.id, (cur) => (cur.type === "text" ? { ...cur, text } : cur))}
+                      onTextBlur={() => {
+                        setEditingTextId(null);
+                        if (a.type === "text" && a.text.trim() === "") {
+                          deleteAnnotation(a.id);
+                        } else {
+                          commitInteraction();
+                        }
+                      }}
+                      onDoubleClick={() => {
+                        if (a.type === "text" && tool === "select") setEditingTextId(a.id);
+                      }}
                     />
                   ))}
                 </div>
@@ -503,21 +557,19 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
 
       {signPrompt && (
         <SignDialog
-          onClose={() => setSignPrompt(false)}
+          onClose={() => setSignPrompt(null)}
           onSubmit={(payload) => {
-            const x = parseFloat(overlayRef.current?.dataset.signX || "0.1");
-            const y = parseFloat(overlayRef.current?.dataset.signY || "0.1");
             addAnnotation({
               id: crypto.randomUUID(),
               type: "signature",
               page,
-              x,
-              y,
+              x: signPrompt.x,
+              y: signPrompt.y,
               w: 0.25,
               h: 0.06,
               ...(payload.kind === "text" ? { text: payload.value } : { dataUrl: payload.value }),
             });
-            setSignPrompt(false);
+            setSignPrompt(null);
           }}
         />
       )}
@@ -525,77 +577,176 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   );
 }
 
-// ------------------------------ Annotation render --------------------------
+// ---------------------------------------------------------------------------
+// Move / resize math
+// ---------------------------------------------------------------------------
+
+function moveAnnotation(current: Annotation, orig: Annotation, dx: number, dy: number): Annotation {
+  switch (orig.type) {
+    case "text":
+    case "check":
+    case "cross":
+      return { ...(current as any), x: clamp01(orig.x + dx), y: clamp01(orig.y + dy) };
+    case "highlight":
+    case "image":
+    case "signature":
+      return {
+        ...(current as any),
+        x: clamp01(orig.x + dx),
+        y: clamp01(orig.y + dy),
+      };
+    case "pencil":
+      if (current.type !== "pencil") return current;
+      return {
+        ...current,
+        points: orig.points.map(([x, y]) => [clamp01(x + dx), clamp01(y + dy)]),
+      };
+  }
+}
+
+function resizeAnnotation(
+  current: Annotation,
+  orig: Annotation,
+  corner: "nw" | "ne" | "sw" | "se",
+  x: number,
+  y: number,
+): Annotation {
+  if (orig.type !== "highlight" && orig.type !== "image" && orig.type !== "signature") return current;
+  let { x: ox, y: oy, w: ow, h: oh } = orig as { x: number; y: number; w: number; h: number };
+  let nx = ox, ny = oy, nw = ow, nh = oh;
+  if (corner === "nw") { nw = ox + ow - x; nh = oy + oh - y; nx = x; ny = y; }
+  if (corner === "ne") { nw = x - ox; nh = oy + oh - y; ny = y; }
+  if (corner === "sw") { nw = ox + ow - x; nh = y - oy; nx = x; }
+  if (corner === "se") { nw = x - ox; nh = y - oy; }
+  if (nw < 0.005) nw = 0.005;
+  if (nh < 0.005) nh = 0.005;
+  return { ...(current as any), x: clamp01(nx), y: clamp01(ny), w: nw, h: nh };
+}
+
+function clamp01(v: number) {
+  return Math.max(0, Math.min(1, v));
+}
+
+// ---------------------------------------------------------------------------
+// Annotation view (with selection chrome + resize handles)
+// ---------------------------------------------------------------------------
 
 function AnnotationView({
   a,
   pageSize,
+  tool,
   selected,
-  onClick,
+  editing,
+  onMouseDown,
+  onResizeMouseDown,
+  onTextChange,
+  onTextBlur,
+  onDoubleClick,
 }: {
   a: Annotation;
   pageSize: { w: number; h: number };
+  tool: Tool;
   selected: boolean;
-  onClick: (e: React.MouseEvent) => void;
+  editing: boolean;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onResizeMouseDown: (e: React.MouseEvent, c: "nw" | "ne" | "sw" | "se") => void;
+  onTextChange: (text: string) => void;
+  onTextBlur: () => void;
+  onDoubleClick: () => void;
 }) {
   const px = (v: number) => v * pageSize.w;
   const py = (v: number) => v * pageSize.h;
+  const cursor = tool === "select" ? "move" : tool === "eraser" ? "not-allowed" : "default";
+  const ringClass = selected ? "ring-2 ring-brand-500" : "ring-0";
 
   if (a.type === "text") {
+    const fontPx = a.fontSize * (pageSize.w / 612);
+    const inputStyle: React.CSSProperties = {
+      position: "absolute",
+      left: px(a.x),
+      top: py(a.y),
+      color: a.color,
+      fontSize: fontPx,
+      lineHeight: 1.2,
+      cursor,
+      minWidth: 20,
+      padding: "2px 4px",
+      background: "transparent",
+      border: "none",
+      outline: editing ? "1px solid #3479ff" : selected ? "1px dashed #3479ff" : "none",
+    };
+    if (editing) {
+      return (
+        <input
+          autoFocus
+          value={a.text}
+          onChange={(e) => onTextChange(e.target.value)}
+          onBlur={onTextBlur}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "Escape") (e.target as HTMLInputElement).blur();
+          }}
+          style={inputStyle}
+          placeholder="Type here…"
+        />
+      );
+    }
     return (
       <div
-        onClick={onClick}
-        style={{
-          position: "absolute",
-          left: px(a.x),
-          top: py(a.y),
-          color: a.color,
-          fontSize: a.fontSize * (pageSize.w / 612), // approx scale to viewport
-          outline: selected ? "1px dashed #3479ff" : "none",
-        }}
+        onMouseDown={onMouseDown}
+        onDoubleClick={onDoubleClick}
+        style={inputStyle}
       >
-        {a.text}
+        {a.text || <span className="text-slate-300">Empty text</span>}
       </div>
     );
   }
+
   if (a.type === "highlight") {
     return (
-      <div
-        onClick={onClick}
-        style={{
-          position: "absolute",
-          left: px(a.x),
-          top: py(a.y),
-          width: px(a.w),
-          height: py(a.h),
-          background: a.color,
-          opacity: 0.35,
-          outline: selected ? "1px dashed #3479ff" : "none",
-        }}
-      />
+      <RectFrame
+        a={a}
+        pageSize={pageSize}
+        selected={selected}
+        cursor={cursor}
+        onMouseDown={onMouseDown}
+        onResizeMouseDown={onResizeMouseDown}
+      >
+        <div style={{ width: "100%", height: "100%", background: a.color, opacity: 0.35 }} />
+      </RectFrame>
     );
   }
+
   if (a.type === "pencil") {
     if (a.points.length < 2) return null;
     const d = a.points.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${px(x)} ${py(y)}`).join(" ");
     return (
       <svg
-        onClick={onClick}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0"
         width={pageSize.w}
         height={pageSize.h}
-        style={{ position: "absolute", left: 0, top: 0 }}
+        style={{ position: "absolute", left: 0, top: 0, overflow: "visible", pointerEvents: "none" }}
       >
-        <path d={d} stroke={a.color} strokeWidth={a.width} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "stroke" }} />
-        {selected && <path d={d} stroke="#3479ff" strokeWidth={a.width + 4} fill="none" opacity={0.2} />}
+        {selected && <path d={d} stroke="#3479ff" strokeWidth={a.width + 6} fill="none" opacity={0.25} />}
+        <path
+          d={d}
+          stroke={a.color}
+          strokeWidth={a.width}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ pointerEvents: "stroke", cursor }}
+          onMouseDown={onMouseDown as any}
+        />
       </svg>
     );
   }
+
   if (a.type === "check" || a.type === "cross") {
     const sz = a.size * pageSize.w;
     return (
       <div
-        onClick={onClick}
+        onMouseDown={onMouseDown}
+        className={cn("grid place-items-center", ringClass)}
         style={{
           position: "absolute",
           left: px(a.x) - sz / 2,
@@ -603,40 +754,95 @@ function AnnotationView({
           width: sz,
           height: sz,
           color: a.color,
+          fontSize: sz,
+          lineHeight: 1,
           fontWeight: 800,
-          outline: selected ? "1px dashed #3479ff" : "none",
+          cursor,
         }}
-        className="grid place-items-center"
       >
         {a.type === "check" ? "✓" : "✕"}
       </div>
     );
   }
+
   if (a.type === "image" || a.type === "signature") {
+    const isImg = a.type === "image" || (a.type === "signature" && a.dataUrl);
     return (
-      <div
-        onClick={onClick}
-        style={{
-          position: "absolute",
-          left: px(a.x),
-          top: py(a.y),
-          width: px(a.w),
-          height: py(a.h),
-          outline: selected ? "1px dashed #3479ff" : "none",
-        }}
+      <RectFrame
+        a={a}
+        pageSize={pageSize}
+        selected={selected}
+        cursor={cursor}
+        onMouseDown={onMouseDown}
+        onResizeMouseDown={onResizeMouseDown}
       >
-        {a.type === "image" || (a.type === "signature" && a.dataUrl) ? (
-          <img src={(a as any).dataUrl} className="block w-full h-full object-contain" alt="" />
+        {isImg ? (
+          <img src={(a as any).dataUrl} className="block w-full h-full object-contain pointer-events-none" alt="" />
         ) : (
-          <span className="text-blue-900 italic" style={{ fontSize: pageSize.h * a.h * 0.7 }}>{(a as any).text}</span>
+          <span className="block w-full h-full italic text-blue-900" style={{ fontSize: py(a.h) * 0.7, lineHeight: `${py(a.h)}px` }}>
+            {(a as any).text}
+          </span>
         )}
-      </div>
+      </RectFrame>
     );
   }
   return null;
 }
 
-// ------------------------------ Sign dialog --------------------------------
+function RectFrame({
+  a,
+  pageSize,
+  selected,
+  cursor,
+  onMouseDown,
+  onResizeMouseDown,
+  children,
+}: {
+  a: Extract<Annotation, { w: number }>;
+  pageSize: { w: number; h: number };
+  selected: boolean;
+  cursor: string;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onResizeMouseDown: (e: React.MouseEvent, c: "nw" | "ne" | "sw" | "se") => void;
+  children: React.ReactNode;
+}) {
+  const px = (v: number) => v * pageSize.w;
+  const py = (v: number) => v * pageSize.h;
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      style={{
+        position: "absolute",
+        left: px(a.x),
+        top: py(a.y),
+        width: px(a.w),
+        height: py(a.h),
+        cursor,
+        outline: selected ? "1px dashed #3479ff" : "none",
+      }}
+    >
+      {children}
+      {selected && (["nw", "ne", "sw", "se"] as const).map((c) => (
+        <div
+          key={c}
+          onMouseDown={(e) => onResizeMouseDown(e, c)}
+          className="absolute h-2.5 w-2.5 rounded-sm bg-white border border-brand-500"
+          style={{
+            left: c.endsWith("w") ? -5 : "auto",
+            right: c.endsWith("e") ? -5 : "auto",
+            top: c.startsWith("n") ? -5 : "auto",
+            bottom: c.startsWith("s") ? -5 : "auto",
+            cursor: c === "nw" || c === "se" ? "nwse-resize" : "nesw-resize",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sign dialog
+// ---------------------------------------------------------------------------
 
 function SignDialog({
   onClose,
@@ -671,6 +877,12 @@ function SignDialog({
   }
   function endDraw() {
     drawingRef.current = false;
+  }
+  function clearCanvas() {
+    const c = canvasRef.current;
+    if (!c) return;
+    const ctx = c.getContext("2d")!;
+    ctx.clearRect(0, 0, c.width, c.height);
   }
 
   return (
@@ -709,16 +921,19 @@ function SignDialog({
             />
           )}
           {tab === "draw" && (
-            <canvas
-              ref={canvasRef}
-              width={460}
-              height={140}
-              onMouseDown={startDraw}
-              onMouseMove={move}
-              onMouseUp={endDraw}
-              onMouseLeave={endDraw}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50"
-            />
+            <div className="space-y-2">
+              <canvas
+                ref={canvasRef}
+                width={460}
+                height={140}
+                onMouseDown={startDraw}
+                onMouseMove={move}
+                onMouseUp={endDraw}
+                onMouseLeave={endDraw}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50"
+              />
+              <button onClick={clearCanvas} className="text-xs text-slate-500 hover:underline">Clear</button>
+            </div>
           )}
           {tab === "upload" && (
             <input
