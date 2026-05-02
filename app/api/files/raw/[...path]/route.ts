@@ -15,7 +15,8 @@ export async function GET(_req: NextRequest, { params }: { params: { path: strin
       ext === ".png" ? "image/png" :
       ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" :
       "application/octet-stream";
-    return new Response(buf, { headers: { "Content-Type": type, "Cache-Control": "private, max-age=60" } });
+    const body = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+    return new Response(body, { headers: { "Content-Type": type, "Cache-Control": "private, max-age=60" } });
   } catch {
     return new Response("Not found", { status: 404 });
   }
