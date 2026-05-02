@@ -1,10 +1,16 @@
-// Convert any Buffer/Uint8Array to a plain Uint8Array.
-// Newer TypeScript DOM libs reject `Buffer<ArrayBufferLike>` where a plain
-// `Uint8Array` is expected (e.g. pdf-lib's load, Response body). This helper
-// normalizes the type without copying when the input is already a Uint8Array.
+// Convert any Buffer/Uint8Array/ArrayBuffer to a plain Uint8Array backed
+// by a fresh ArrayBuffer (never SharedArrayBuffer or Buffer<ArrayBufferLike>).
+// This is required because newer TS DOM libs reject the wider
+// `Uint8Array<ArrayBufferLike>` type for things like pdf-lib's load(),
+// Response body and BlobPart.
 export function toUint8(input: Buffer | Uint8Array | ArrayBuffer): Uint8Array {
-  if (input instanceof Uint8Array) {
-    return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+  if (input instanceof ArrayBuffer) {
+    const view = new Uint8Array(input);
+    const out = new Uint8Array(view.byteLength);
+    out.set(view);
+    return out;
   }
-  return new Uint8Array(input);
+  const out = new Uint8Array(input.byteLength);
+  out.set(new Uint8Array(input.buffer, input.byteOffset, input.byteLength));
+  return out;
 }

@@ -15,8 +15,13 @@ export async function GET(_req: NextRequest, { params }: { params: { path: strin
       ext === ".png" ? "image/png" :
       ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" :
       "application/octet-stream";
-    const blob = new Blob([new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)], { type });
-    return new Response(blob, { headers: { "Cache-Control": "private, max-age=60" } });
+    // Allocate a fresh ArrayBuffer (never SharedArrayBuffer) so TS's strict
+    // BodyInit / BlobPart types accept the response body without a cast.
+    const ab: ArrayBuffer = new ArrayBuffer(buf.byteLength);
+    new Uint8Array(ab).set(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength));
+    return new Response(ab, {
+      headers: { "Content-Type": type, "Cache-Control": "private, max-age=60" },
+    });
   } catch {
     return new Response("Not found", { status: 404 });
   }
