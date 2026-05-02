@@ -1,12 +1,13 @@
 import { PDFDocument, degrees } from "pdf-lib";
 import { parsePageRanges } from "@/lib/utils";
+import { toUint8 } from "@/lib/bytes";
 
 export async function rotatePdf(
   buffer: Buffer | Uint8Array,
   ranges: string,
   angle: 90 | 180 | 270,
 ): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(buffer as Uint8Array, { ignoreEncryption: true });
+  const doc = await PDFDocument.load(toUint8(buffer), { ignoreEncryption: true });
   const total = doc.getPageCount();
   const targets = ranges.trim()
     ? parsePageRanges(ranges, total)
