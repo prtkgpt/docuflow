@@ -418,7 +418,7 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       const reordered = pageOps.order.length > 0 &&
         (pageOps.order.length !== thumbnails.length ||
           pageOps.order.some((p, i) => p !== i + 1) ||
-          Object.values(pageOps.rotations).some((r) => r && r !== 0));
+          Object.values(pageOps.rotations).some((r) => r !== 0));
       const body: any = { fileId, annotations: cleaned };
       if (reordered) body.pageOps = { keep: pageOps.order, rotate: pageOps.rotations };
 
