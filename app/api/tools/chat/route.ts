@@ -10,6 +10,7 @@ import { getOpenAI } from "@/lib/ai/openai";
 import { chunkText } from "@/lib/pdf/chunk";
 import { retrieveTopK } from "@/lib/ai/retrieval";
 import { estimateCostUsd, usdToCents, approxCharsForTokens } from "@/lib/ai/cost";
+import { aiErrorResponse } from "@/lib/ai/errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -99,15 +100,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
-      model: MODEL,
-      max_tokens: check.maxOutputTokens,
-      messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: `Document chunks (${selected.length} of ${chunkRows.length}):\n\n${context}\n\nQuestion: ${question}` },
-      ],
-      temperature: 0.1,
-    });
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: MODEL,
+        max_tokens: check.maxOutputTokens,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: `Document chunks (${selected.length} of ${chunkRows.length}):\n\n${context}\n\nQuestion: ${question}` },
+        ],
+        temperature: 0.1,
+      });
+    } catch (openaiErr) {
+      // Don't burn the user's question counter when OpenAI is the one
+      // failing. Surface a clean message so the UI can retry.
+      const { status, body } = aiErrorResponse(openaiErr);
+      console.error("[chat] OpenAI error:", openaiErr);
+      return NextResponse.json(body, { status });
+    }
 
     const answer = completion.choices[0]?.message?.content || "";
     // The model cites chunk numbers — surface them as page-equivalent

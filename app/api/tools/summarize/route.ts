@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { checkAiLimit } from "@/lib/quotas";
 import { getOpenAI } from "@/lib/ai/openai";
 import { estimateCostUsd, truncateToTokens, usdToCents } from "@/lib/ai/cost";
+import { aiErrorResponse } from "@/lib/ai/errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -88,16 +89,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
-      model: MODEL,
-      response_format: { type: "json_object" },
-      max_tokens: check.maxOutputTokens,
-      messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: trimmed },
-      ],
-      temperature: 0.2,
-    });
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: MODEL,
+        response_format: { type: "json_object" },
+        max_tokens: check.maxOutputTokens,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: trimmed },
+        ],
+        temperature: 0.2,
+      });
+    } catch (openaiErr) {
+      // Map provider errors (quota, rate limit, auth) to friendly responses
+      // and bail BEFORE we increment the user's monthly counter — we don't
+      // want to "use up" their quota when our provider is the one failing.
+      const { status, body } = aiErrorResponse(openaiErr);
+      console.error("[summarize] OpenAI error:", openaiErr);
+      return NextResponse.json(body, { status });
+    }
 
     const raw = completion.choices[0]?.message?.content || "{}";
     const parsed = JSON.parse(raw);

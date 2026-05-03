@@ -59,7 +59,16 @@ function Inner() {
           router.push(`/login?callbackUrl=${encodeURIComponent(`/tools/chat-with-pdf?fileId=${fileId}`)}`);
           return;
         }
-        if (data.code === "AI_TEXT_TOO_LONG" || data.code === "AI_DAILY_LIMIT" || data.code === "PLAN_REQUIRED") {
+        if (
+          data.code === "AI_TEXT_TOO_LONG" ||
+          data.code === "AI_MONTHLY_LIMIT" ||
+          data.code === "AI_DAILY_LIMIT" ||
+          data.code === "PLAN_REQUIRED" ||
+          data.code === "AI_SERVICE_UNAVAILABLE" ||
+          data.code === "AI_BUSY" ||
+          data.code === "AI_NOT_CONFIGURED" ||
+          data.code === "AI_UPSTREAM_ERROR"
+        ) {
           throw new Error(data.error);
         }
         throw new Error(data.error || "Could not get an answer");
