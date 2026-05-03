@@ -37,7 +37,7 @@ export default function Page() {
       faq={[
         { q: "Does it cite the source?", a: "Yes. Answers include page numbers so you can verify them in the original PDF." },
         { q: "Can I ask follow-up questions?", a: "Yes — keep asking. Each question is answered using the same uploaded document." },
-        { q: "Is Chat with PDF free?", a: "AI features require a Pro or Business plan." },
+        { q: "Is Chat with PDF free?", a: "Yes — Free users get 10 questions per day on PDFs up to ~6,000 characters of text. Pro raises this to 500/day on much larger files; Business is effectively unlimited." },
       ]}
     />
   );

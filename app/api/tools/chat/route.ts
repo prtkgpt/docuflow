@@ -6,7 +6,7 @@ import { loadFile } from "@/lib/process";
 import { extractPdfText } from "@/lib/pdf/extract-text";
 import { chatWithDocument } from "@/lib/ai/summarize";
 import { prisma } from "@/lib/db";
-import { getUserQuota } from "@/lib/quotas";
+import { checkAiLimit } from "@/lib/quotas";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -19,17 +19,20 @@ export async function POST(req: NextRequest) {
   if (!userId) {
     return NextResponse.json({ error: "Sign in to use AI tools", code: "AUTH_REQUIRED" }, { status: 401 });
   }
-  const quota = await getUserQuota(userId);
-  if (!quota.aiAllowed) {
-    return NextResponse.json(
-      { error: "AI tools require a Pro or Business plan", code: "PLAN_REQUIRED", plan: quota.plan },
-      { status: 402 },
-    );
-  }
   try {
     const { fileId, question } = Body.parse(await req.json());
     const { file, buffer } = await loadFile(fileId);
-    const { pageTexts } = await extractPdfText(buffer);
+    const { pageTexts, text } = await extractPdfText(buffer);
+
+    // Per-plan AI quota. Free users get a smaller text cap and 10 questions/day.
+    const check = await checkAiLimit(userId, "chat", text.length);
+    if (!check.ok) {
+      return NextResponse.json(
+        { error: check.message, code: check.code, plan: check.plan, used: (check as any).used, limit: (check as any).limit, maxChars: (check as any).maxChars },
+        { status: 402 },
+      );
+    }
+
     const { answer, pages } = await chatWithDocument(pageTexts, question);
 
     await prisma.aIRequest.create({
@@ -44,7 +47,11 @@ export async function POST(req: NextRequest) {
     });
     await prisma.toolUsage.create({ data: { userId, toolType: "chat", fileId: file.id } });
 
-    return NextResponse.json({ answer, pages });
+    return NextResponse.json({
+      answer,
+      pages,
+      usage: { used: check.used + 1, limit: check.limit },
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "Chat failed" }, { status: 400 });
   }

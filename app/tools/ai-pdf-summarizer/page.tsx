@@ -36,9 +36,9 @@ export default function Page() {
         { slug: "best-ai-pdf-summarizer-tools", title: "Best AI PDF summarizer tools in 2026" },
       ]}
       faq={[
+        { q: "Is this included in the Free plan?", a: "Yes — Free users get 3 summaries per day on PDFs up to ~8,000 characters of text (about 4–6 pages). Pro raises this to 100/day on much larger files; Business is effectively unlimited." },
         { q: "What types of PDFs work best?", a: "Text-based PDFs work best. For scanned PDFs, run OCR first to extract the text." },
-        { q: "Is this included in the Free plan?", a: "AI summaries require a Pro or Business plan. Free accounts can preview the tool layout but need to upgrade to run the model." },
-        { q: "How long can the PDF be?", a: "Long PDFs are truncated to fit the model's context. For very long documents, summarize sections separately." },
+        { q: "How long can the PDF be?", a: "Free: ~8,000 characters. Pro: ~200,000 characters (about 80–100 pages). Business: 1,000,000 characters." },
       ]}
     />
   );

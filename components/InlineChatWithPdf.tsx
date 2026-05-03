@@ -2,12 +2,13 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Send, FileText, RotateCcw, MessagesSquare } from "lucide-react";
+import { Loader2, Send, FileText, RotateCcw, MessagesSquare, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UploadDropzone } from "@/components/UploadDropzone";
 
 type Turn = { role: "user" | "assistant"; text: string; pages?: number[] };
+type Usage = { signedIn: boolean; plan?: "free" | "pro" | "business"; used?: number; limit?: number };
 
 function Inner() {
   const params = useSearchParams();
@@ -18,7 +19,12 @@ function Inner() {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/ai-usage?kind=chat").then((r) => r.json()).then(setUsage).catch(() => null);
+  }, [turns.length]);
 
   useEffect(() => {
     if (!fileId) return;
@@ -47,8 +53,8 @@ function Inner() {
           router.push(`/login?callbackUrl=${encodeURIComponent(`/tools/chat-with-pdf?fileId=${fileId}`)}`);
           return;
         }
-        if (data.code === "PLAN_REQUIRED") {
-          throw new Error("Chat with PDF requires a Pro or Business plan. Upgrade in /pricing.");
+        if (data.code === "AI_TEXT_TOO_LONG" || data.code === "AI_DAILY_LIMIT" || data.code === "PLAN_REQUIRED") {
+          throw new Error(data.error);
         }
         throw new Error(data.error || "Could not get an answer");
       }
@@ -62,7 +68,12 @@ function Inner() {
   }
 
   if (!fileId) {
-    return <UploadDropzone redirectTo="/tools/chat-with-pdf" />;
+    return (
+      <div className="space-y-3">
+        <UploadDropzone redirectTo="/tools/chat-with-pdf" />
+        <UsageBadge usage={usage} />
+      </div>
+    );
   }
 
   return (
@@ -81,6 +92,8 @@ function Inner() {
           <Link href="/tools/chat-with-pdf"><RotateCcw className="h-4 w-4" /> New file</Link>
         </Button>
       </div>
+
+      <UsageBadge usage={usage} />
 
       <div className="mt-4 max-h-96 min-h-[160px] space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3">
         {turns.length === 0 && (
@@ -114,7 +127,14 @@ function Inner() {
       </div>
 
       {error && (
-        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
+          <p>{error}</p>
+          {(error.toLowerCase().includes("upgrade") || error.toLowerCase().includes("pro")) && (
+            <div>
+              <Button asChild size="sm"><Link href="/pricing"><Crown className="h-4 w-4" /> Upgrade to Pro</Link></Button>
+            </div>
+          )}
+        </div>
       )}
 
       <form onSubmit={ask} className="mt-3 flex gap-2">
@@ -129,6 +149,19 @@ function Inner() {
           <Send className="h-4 w-4" /> Ask
         </Button>
       </form>
+    </div>
+  );
+}
+
+function UsageBadge({ usage }: { usage: Usage | null }) {
+  if (!usage || !usage.signedIn || !usage.plan) return null;
+  if (usage.plan === "business") return null;
+  const remaining = Math.max(0, (usage.limit ?? 0) - (usage.used ?? 0));
+  const tone = remaining === 0 ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-600";
+  return (
+    <div className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
+      <span className="capitalize">{usage.plan}</span> plan · {usage.used} / {usage.limit} questions today
+      {remaining === 0 && <Link href="/pricing" className="font-medium underline">Upgrade</Link>}
     </div>
   );
 }

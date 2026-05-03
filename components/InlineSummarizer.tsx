@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Sparkles, FileText, RotateCcw } from "lucide-react";
+import { Loader2, Sparkles, FileText, RotateCcw, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadDropzone } from "@/components/UploadDropzone";
 
@@ -13,6 +13,8 @@ type Summary = {
   actions: string[];
 };
 
+type Usage = { signedIn: boolean; plan?: "free" | "pro" | "business"; used?: number; limit?: number; maxChars?: number };
+
 function Inner() {
   const params = useSearchParams();
   const router = useRouter();
@@ -21,7 +23,12 @@ function Inner() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
   const autoRan = params.get("autorun") === "1";
+
+  useEffect(() => {
+    fetch("/api/ai-usage?kind=summarize").then((r) => r.json()).then(setUsage).catch(() => null);
+  }, [summary]);
 
   useEffect(() => {
     if (!fileId) return;
@@ -46,8 +53,8 @@ function Inner() {
           router.push(`/login?callbackUrl=${encodeURIComponent(`/tools/ai-pdf-summarizer?fileId=${fileId}`)}`);
           return;
         }
-        if (data.code === "PLAN_REQUIRED") {
-          throw new Error("AI summaries require a Pro or Business plan. Upgrade in /pricing.");
+        if (data.code === "AI_TEXT_TOO_LONG" || data.code === "AI_DAILY_LIMIT" || data.code === "PLAN_REQUIRED") {
+          throw new Error(data.error);
         }
         throw new Error(data.error || "Could not summarize");
       }
@@ -59,14 +66,18 @@ function Inner() {
     }
   }
 
-  // Auto-run once when ?autorun=1 is set (used by deep-links from upload).
   useEffect(() => {
     if (autoRan && fileId && !summary && !busy) run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRan, fileId]);
 
   if (!fileId) {
-    return <UploadDropzone redirectTo="/tools/ai-pdf-summarizer?autorun=1" />;
+    return (
+      <div className="space-y-3">
+        <UploadDropzone redirectTo="/tools/ai-pdf-summarizer?autorun=1" />
+        <UsageBadge usage={usage} kind="summary" />
+      </div>
+    );
   }
 
   return (
@@ -86,6 +97,8 @@ function Inner() {
         </Button>
       </div>
 
+      <UsageBadge usage={usage} kind="summary" />
+
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Button onClick={run} disabled={busy} size="lg">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -97,8 +110,13 @@ function Inner() {
       </div>
 
       {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-2">
+          <p>{error}</p>
+          {(error.toLowerCase().includes("upgrade") || error.toLowerCase().includes("pro")) && (
+            <div>
+              <Button asChild size="sm"><Link href="/pricing"><Crown className="h-4 w-4" /> Upgrade to Pro</Link></Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -109,6 +127,21 @@ function Inner() {
           {summary.takeaways?.length > 0 && <ListSection title="Key takeaways" items={summary.takeaways} />}
           {summary.actions?.length > 0 && <ListSection title="Action items" items={summary.actions} />}
         </div>
+      )}
+    </div>
+  );
+}
+
+function UsageBadge({ usage, kind }: { usage: Usage | null; kind: "summary" | "chat" }) {
+  if (!usage || !usage.signedIn || !usage.plan) return null;
+  if (usage.plan === "business") return null;
+  const remaining = Math.max(0, (usage.limit ?? 0) - (usage.used ?? 0));
+  const tone = remaining === 0 ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-600";
+  return (
+    <div className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
+      <span className="capitalize">{usage.plan}</span> plan · {usage.used} / {usage.limit} {kind === "summary" ? "summaries" : "questions"} today
+      {remaining === 0 && (
+        <Link href="/pricing" className="font-medium underline">Upgrade</Link>
       )}
     </div>
   );
