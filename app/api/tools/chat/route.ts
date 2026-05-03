@@ -6,7 +6,7 @@ import { loadFile } from "@/lib/process";
 import { extractPdfText } from "@/lib/pdf/extract-text";
 import { prisma } from "@/lib/db";
 import { checkAiLimit } from "@/lib/quotas";
-import { getOpenAI } from "@/lib/ai/openai";
+import { getOpenAI, getModel } from "@/lib/ai/openai";
 import { chunkText } from "@/lib/pdf/chunk";
 import { retrieveTopK } from "@/lib/ai/retrieval";
 import { estimateCostUsd, usdToCents, approxCharsForTokens } from "@/lib/ai/cost";
@@ -19,8 +19,6 @@ const Body = z.object({
   fileId: z.string(),
   question: z.string().min(2).max(2000),
 });
-
-const MODEL = "gpt-4o-mini";
 const SYSTEM = `Answer questions about the user's PDF using only the provided chunks. Cite the chunk numbers you used in square brackets like [Chunk 2]. If the answer isn't in the chunks, say so plainly. Be concise.`;
 
 export async function POST(req: NextRequest) {
@@ -101,9 +99,10 @@ export async function POST(req: NextRequest) {
     }
 
     let completion;
+    const model = getModel();
     try {
       completion = await openai.chat.completions.create({
-        model: MODEL,
+        model,
         max_tokens: check.maxOutputTokens,
         messages: [
           { role: "system", content: SYSTEM },
@@ -128,7 +127,7 @@ export async function POST(req: NextRequest) {
 
     const inputTokens = completion.usage?.prompt_tokens ?? 0;
     const outputTokens = completion.usage?.completion_tokens ?? 0;
-    const costUsd = estimateCostUsd(MODEL, inputTokens, outputTokens);
+    const costUsd = estimateCostUsd(model, inputTokens, outputTokens);
 
     // Spend a credit if the plan budget is exhausted but the user has
     // pre-purchased chat questions to cover this request.
@@ -155,7 +154,7 @@ export async function POST(req: NextRequest) {
         userId,
         fileId: file.id,
         featureType: "chat",
-        model: MODEL,
+        model: model,
         inputTokens,
         outputTokens,
         estimatedCost: costUsd,

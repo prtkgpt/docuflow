@@ -6,7 +6,7 @@ import { loadFile } from "@/lib/process";
 import { extractPdfText } from "@/lib/pdf/extract-text";
 import { prisma } from "@/lib/db";
 import { checkAiLimit } from "@/lib/quotas";
-import { getOpenAI } from "@/lib/ai/openai";
+import { getOpenAI, getModel } from "@/lib/ai/openai";
 import { estimateCostUsd, truncateToTokens, usdToCents } from "@/lib/ai/cost";
 import { aiErrorResponse } from "@/lib/ai/errors";
 
@@ -19,8 +19,6 @@ const Body = z.object({
   // the cache and rebill OpenAI for a new run.
   fresh: z.boolean().optional(),
 });
-
-const MODEL = "gpt-4o-mini";
 const SYSTEM = `You are an assistant that summarizes documents.
 Return JSON with keys: short, bullets, takeaways, actions.
 - short: 2-3 sentence executive summary
@@ -90,9 +88,10 @@ export async function POST(req: NextRequest) {
     }
 
     let completion;
+    const model = getModel();
     try {
       completion = await openai.chat.completions.create({
-        model: MODEL,
+        model,
         response_format: { type: "json_object" },
         max_tokens: check.maxOutputTokens,
         messages: [
@@ -121,7 +120,7 @@ export async function POST(req: NextRequest) {
 
     const inputTokens = completion.usage?.prompt_tokens ?? 0;
     const outputTokens = completion.usage?.completion_tokens ?? 0;
-    const costUsd = estimateCostUsd(MODEL, inputTokens, outputTokens);
+    const costUsd = estimateCostUsd(model, inputTokens, outputTokens);
 
     // 3. Persist cache + ledger entries.
     await prisma.pdfSummary.upsert({
@@ -131,7 +130,7 @@ export async function POST(req: NextRequest) {
         bullets: JSON.stringify(summary.bullets),
         takeaways: JSON.stringify(summary.takeaways),
         actions: JSON.stringify(summary.actions),
-        model: MODEL,
+        model: model,
         inputTokens,
         outputTokens,
         estimatedCost: costUsd,
@@ -142,7 +141,7 @@ export async function POST(req: NextRequest) {
         bullets: JSON.stringify(summary.bullets),
         takeaways: JSON.stringify(summary.takeaways),
         actions: JSON.stringify(summary.actions),
-        model: MODEL,
+        model: model,
         inputTokens,
         outputTokens,
         estimatedCost: costUsd,
@@ -165,7 +164,7 @@ export async function POST(req: NextRequest) {
         userId,
         fileId: file.id,
         featureType: "summarize",
-        model: MODEL,
+        model: model,
         inputTokens,
         outputTokens,
         estimatedCost: costUsd,
