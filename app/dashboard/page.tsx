@@ -8,6 +8,7 @@ import { getUserQuota, getAiUsageThisMonth } from "@/lib/quotas";
 import { getPlan } from "@/lib/plans";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,11 @@ async function getStats(userId: string | null) {
   }
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { welcome?: string };
+}) {
   const session = await getServerSession(authOptions).catch(() => null);
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   if (!userId) redirect("/login?callbackUrl=/dashboard");
@@ -37,9 +42,11 @@ export default async function DashboardPage() {
   const periodLabel = quota.filesPeriod === "day" ? "today" : "this month";
   const ai = await getAiUsageThisMonth(userId);
   const resetDate = new Date(ai.resetDate).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const showWelcome = searchParams.welcome === "1";
 
   return (
     <div className="space-y-6">
+      {showWelcome && <WelcomeCard name={session?.user?.name} />}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Overview</h1>

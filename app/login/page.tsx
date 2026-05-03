@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useState, Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { Mail, CheckCircle2, Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -16,17 +17,27 @@ function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
   const callbackUrl = params.get("callbackUrl") || "/dashboard";
+  const checkEmail = params.get("check") === "email";
+
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(checkEmail);
   const [error, setError] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setError(null);
     try {
-      const res = await signIn("credentials", { email, redirect: false, callbackUrl });
-      if (res?.error) throw new Error(res.error);
-      if (res?.ok) router.push(callbackUrl);
+      // Try the email magic link first (production). If the email provider
+      // isn't configured we fall back to credentials in dev.
+      const res = await signIn("email", { email, redirect: false, callbackUrl });
+      if (res?.error && res.error !== "EmailSignin") {
+        // EmailProvider not configured — try credentials fallback.
+        const cred = await signIn("credentials", { email, redirect: false, callbackUrl });
+        if (cred?.ok) { router.push(callbackUrl); return; }
+        throw new Error(cred?.error || res.error);
+      }
+      setSent(true);
     } catch (e: any) {
       setError(e.message || "Could not sign in");
     } finally {
@@ -34,11 +45,33 @@ function LoginInner() {
     }
   }
 
+  if (sent) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="inline-flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600" /> Check your email
+          </CardTitle>
+          <CardDescription>
+            We just sent a sign-in link to <span className="font-medium text-slate-900">{email || "your inbox"}</span>.
+            Click the link to finish signing in.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-slate-500">
+            The link expires in 24 hours. If it doesn&apos;t arrive in a minute, check your spam folder.
+          </p>
+          <Button variant="outline" onClick={() => setSent(false)}>Use a different email</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Welcome back</CardTitle>
-        <CardDescription>Sign in to {SITE.name} with your email.</CardDescription>
+        <CardDescription>Sign in to {SITE.name} with a magic link sent to your email.</CardDescription>
       </CardHeader>
       <CardContent>
         <AuthOptions callbackUrl={callbackUrl} />
@@ -48,7 +81,10 @@ function LoginInner() {
             <Input id="email" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button className="w-full" disabled={busy}>{busy ? "Signing in…" : "Continue"}</Button>
+          <Button className="w-full" disabled={busy}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+            {busy ? "Sending…" : "Email me a sign-in link"}
+          </Button>
           <p className="text-xs text-slate-500 text-center">
             New here?{" "}
             <Link href={`/signup${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="text-brand-700 underline">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/utils";
@@ -18,6 +18,11 @@ export default async function AdminHome() {
   const posts = await getPosts();
   return (
     <>
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link href="/master-admin/ai-cost"><Activity className="h-4 w-4" /> AI cost dashboard</Link>
+        </Button>
+      </div>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Blog posts</h1>

@@ -24,17 +24,31 @@ function SignupInner() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setError(null);
     try {
-      const res = await signIn("credentials", { email, name, redirect: false });
-      if (res?.error) throw new Error(res.error);
-      if (!res?.ok) throw new Error("Could not create your account.");
+      // Send a magic link first. The user gets a "Check your email" view
+      // that explains the next step. We attach plan/interval to the
+      // callback URL so the post-auth route can resume the checkout.
+      const target = (planAfter === "plus" || planAfter === "pro" || planAfter === "business")
+        ? `${callbackUrl.split("?")[0]}?plan=${planAfter}&interval=${params.get("interval") === "annual" ? "annual" : "monthly"}&checkout=resume`
+        : callbackUrl;
+
+      const res = await signIn("email", { email, redirect: false, callbackUrl: target });
+      if (res?.ok) {
+        setSent(true);
+        return;
+      }
+
+      // Fallback: credentials provider (instant sign-in) if Resend isn't
+      // configured on this environment.
+      const cred = await signIn("credentials", { email, name, redirect: false });
+      if (!cred?.ok) throw new Error(cred?.error || res?.error || "Could not create your account.");
 
       if (planAfter === "plus" || planAfter === "pro" || planAfter === "business") {
-        // Continue to Stripe checkout for the chosen plan.
         const interval = (params.get("interval") === "annual" ? "annual" : "monthly");
         const r = await fetch("/api/stripe/checkout", {
           method: "POST",
@@ -52,13 +66,34 @@ function SignupInner() {
     }
   }
 
+  if (sent) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Check your email</CardTitle>
+          <CardDescription>
+            We just sent a sign-in link to <span className="font-medium text-slate-900">{email}</span>.
+            Click the link to finish creating your account.
+            {planAfter && planAfter !== "free" && (
+              <span className="block mt-2 text-brand-700">After signing in we&apos;ll take you to Stripe to start your <span className="font-semibold capitalize">{planAfter}</span> plan.</span>
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-slate-500">The link expires in 24 hours. Check your spam folder if it doesn&apos;t arrive in a minute.</p>
+          <Button variant="outline" onClick={() => setSent(false)} className="mt-3">Use a different email</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="grid gap-8 md:grid-cols-2 items-start">
       <Card>
         <CardHeader>
           <CardTitle>Create your free account</CardTitle>
           <CardDescription>
-            No password required. We&apos;ll save your files in a private workspace.
+            We&apos;ll email you a secure sign-in link — no password to remember.
             {planAfter && planAfter !== "free" && (
               <span className="block mt-2 text-brand-700">
                 After signup, we&apos;ll send you to Stripe to start your <span className="font-semibold capitalize">{planAfter}</span> plan.
@@ -80,7 +115,7 @@ function SignupInner() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <Button className="w-full" disabled={busy}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              {busy ? "Working…" : planAfter && planAfter !== "free" ? "Create account & continue to checkout" : "Create free account"}
+              {busy ? "Sending…" : planAfter && planAfter !== "free" ? "Email me a link & start checkout" : "Email me a sign-in link"}
             </Button>
             <p className="text-xs text-slate-500 text-center">
               Already have an account?{" "}

@@ -59,7 +59,7 @@ export const TOOLS: Tool[] = [
   { slug: "pdf-to-png", name: "PDF to PNG", description: "Render each PDF page as a PNG image.", href: "/tools/pdf-to-jpg", icon: ImageIcon, categories: ["from-pdf", "image"] },
   { slug: "jpg-to-png", name: "JPG to PNG", description: "Convert JPG images to PNG.", href: "/tools/jpg-to-png", icon: ImageIcon, categories: ["image"] },
   { slug: "png-to-jpg", name: "PNG to JPG", description: "Convert PNG images to JPG.", href: "/tools/png-to-jpg", icon: ImageIcon, categories: ["image"] },
-  { slug: "pdf-to-excel", name: "PDF to Excel", description: "Extract tabular data into .xlsx.", href: "/tools/pdf-to-word?type=excel", icon: Sheet, categories: ["from-pdf"], pro: true },
+  { slug: "pdf-to-excel", name: "PDF to Excel", description: "Extract tabular data into .xlsx.", href: "/tools/pdf-to-excel", icon: Sheet, categories: ["from-pdf"] },
   { slug: "pdf-to-pptx", name: "PDF to PPTX", description: "Convert PDF slides into PowerPoint.", href: "/tools/pdf-to-word?type=pptx", icon: Presentation, categories: ["from-pdf"], pro: true },
   { slug: "pdf-to-text", name: "PDF to Text", description: "Extract plain text from your PDF.", href: "/tools/ai-pdf-summarizer?mode=extract", icon: FileText, categories: ["from-pdf"] },
 
