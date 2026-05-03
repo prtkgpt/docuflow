@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { readByUrlOrName } from "@/lib/storage";
+import { toUint8 } from "@/lib/bytes";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
     return NextResponse.redirect(file.url, 302);
   }
   const buf = await readByUrlOrName(file.url);
-  return new NextResponse(buf, {
+  return new NextResponse(toUint8(buf), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="${file.originalName}"`,
