@@ -173,3 +173,5 @@ CREATE TABLE IF NOT EXISTS "PlanUsage" (
   "estimatedCostMonthCents" INTEGER NOT NULL DEFAULT 0,
   "resetDate"               TIMESTAMP NOT NULL
 );
+
+ALTER TABLE "PdfChunk" ADD COLUMN IF NOT EXISTS "embedding" TEXT;

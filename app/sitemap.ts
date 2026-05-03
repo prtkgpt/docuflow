@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/site";
 import { BLOG_POSTS } from "@/lib/blog";
 import { COMPARISONS } from "@/lib/compare";
+import { LANGUAGES } from "@/lib/i18n/languages";
 import { prisma } from "@/lib/db";
 
 const TOOL_SLUGS = [
@@ -19,6 +20,8 @@ const TOOL_SLUGS = [
   "ocr-pdf",
   "ai-pdf-summarizer",
   "chat-with-pdf",
+  "translate-pdf",
+  "pdf-to-excel",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -74,5 +77,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
+    // Language-pair landing pages — every non-English language gets two
+    // dedicated URLs (X→English and English→X). 24 × 2 = 48 pages.
+    ...LANGUAGES
+      .filter((l) => l.code !== "en")
+      .flatMap((l) => [
+        {
+          url: absoluteUrl(`/tools/translate-pdf/${l.slug}-to-english`),
+          lastModified: now,
+          changeFrequency: "monthly" as const,
+          priority: 0.65,
+        },
+        {
+          url: absoluteUrl(`/tools/translate-pdf/english-to-${l.slug}`),
+          lastModified: now,
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+        },
+      ]),
   ];
 }

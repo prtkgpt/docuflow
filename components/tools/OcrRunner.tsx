@@ -2,20 +2,24 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Loader2, FileText, Download, RotateCcw, ScanText, CheckCircle2 } from "lucide-react";
+import { Loader2, FileText, Download, RotateCcw, ScanText, CheckCircle2, FileType2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadDropzone } from "@/components/UploadDropzone";
+import { LANGUAGES, findLanguage, ENGLISH } from "@/lib/i18n/languages";
 
 type Stage =
   | { kind: "idle" }
   | { kind: "rendering"; page: number; total: number }
-  | { kind: "ocr"; page: number; total: number; progress: number }
-  | { kind: "done"; pageTexts: string[] };
+  | { kind: "ocr"; page: number; total: number }
+  | { kind: "done"; pageTexts: string[]; pdfBytes: Uint8Array | null };
 
 function Inner() {
   const params = useSearchParams();
   const fileId = params.get("fileId");
+  const initialLang = findLanguage(params.get("lang")) ?? ENGLISH;
+
   const [meta, setMeta] = useState<{ originalName: string; url: string } | null>(null);
+  const [lang, setLang] = useState(initialLang.code);
   const [stage, setStage] = useState<Stage>({ kind: "idle" });
   const [error, setError] = useState<string | null>(null);
 
@@ -37,12 +41,16 @@ function Inner() {
       pdfjs.GlobalWorkerOptions.workerSrc =
         "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs";
       const Tesseract = (await import("tesseract.js")).default;
+      const { PDFDocument } = await import("pdf-lib");
+
+      const lang = findLanguage(document.querySelector<HTMLSelectElement>("#ocr-lang")?.value) ?? ENGLISH;
 
       const pdf = await pdfjs.getDocument({ url: meta.url }).promise;
       const total = pdf.numPages;
 
-      const worker = await Tesseract.createWorker("eng");
+      const worker = await Tesseract.createWorker(lang.tesseract);
       const pageTexts: string[] = [];
+      const pagePdfs: Uint8Array[] = [];
       try {
         for (let i = 1; i <= total; i++) {
           setStage({ kind: "rendering", page: i, total });
@@ -55,14 +63,34 @@ function Inner() {
           if (!ctx) throw new Error("Canvas not available");
           await page.render({ canvasContext: ctx, viewport }).promise;
 
-          setStage({ kind: "ocr", page: i, total, progress: 0 });
-          const { data } = await worker.recognize(canvas);
-          pageTexts.push(data.text || "");
+          setStage({ kind: "ocr", page: i, total });
+          const result: any = await worker.recognize(canvas, {}, { pdf: true } as any);
+          pageTexts.push(result?.data?.text || "");
+          // Tesseract.js v5 returns the searchable PDF in result.data.pdf as
+          // a number array; convert to Uint8Array for pdf-lib.
+          const rawPdf = result?.data?.pdf;
+          if (rawPdf) pagePdfs.push(new Uint8Array(rawPdf));
         }
       } finally {
         await worker.terminate();
       }
-      setStage({ kind: "done", pageTexts });
+
+      // Merge per-page searchable PDFs into one. Each page is its own PDF
+      // doc carrying the rendered image with an invisible text layer below.
+      let mergedBytes: Uint8Array | null = null;
+      if (pagePdfs.length === pageTexts.length && pagePdfs.length > 0) {
+        const out = await PDFDocument.create();
+        for (const buf of pagePdfs) {
+          try {
+            const src = await PDFDocument.load(buf, { ignoreEncryption: true });
+            const copied = await out.copyPages(src, src.getPageIndices());
+            copied.forEach((p) => out.addPage(p));
+          } catch { /* ignore one bad page */ }
+        }
+        mergedBytes = await out.save();
+      }
+
+      setStage({ kind: "done", pageTexts, pdfBytes: mergedBytes });
     } catch (e: any) {
       setError(e.message || "OCR failed");
       setStage({ kind: "idle" });
@@ -78,6 +106,16 @@ function Inner() {
     const a = document.createElement("a");
     a.href = url;
     a.download = `${(meta?.originalName || "ocr").replace(/\.pdf$/i, "")}-ocr.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadPdf(bytes: Uint8Array) {
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(meta?.originalName || "ocr").replace(/\.pdf$/i, "")}-searchable.pdf`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -110,13 +148,23 @@ function Inner() {
 
       {stage.kind === "idle" && (
         <div className="space-y-3">
+          <div>
+            <label htmlFor="ocr-lang" className="text-sm font-medium text-slate-800">PDF language</label>
+            <select
+              id="ocr-lang"
+              value={lang}
+              onChange={(e) => setLang(e.target.value)}
+              className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>{l.flag} {l.name}{l.nativeName && l.nativeName !== l.name ? ` (${l.nativeName})` : ""}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">First time using this language? We&apos;ll download a small Tesseract model (~10 MB), then cache it.</p>
+          </div>
           <Button size="lg" className="w-full" onClick={run}>
             <ScanText className="h-4 w-4" /> Run OCR (in your browser)
           </Button>
-          <p className="text-xs text-slate-500">
-            OCR runs on your device using Tesseract.js. The first page takes a few seconds while
-            we download the language model (~10 MB, cached after).
-          </p>
         </div>
       )}
 
@@ -149,11 +197,21 @@ function Inner() {
               Extracted text from {stage.pageTexts.length} page{stage.pageTexts.length === 1 ? "" : "s"}.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="lg" onClick={() => downloadTxt(stage.pageTexts)}>
-                <Download className="h-4 w-4" /> Download as .txt
+              {stage.pdfBytes && (
+                <Button size="lg" onClick={() => downloadPdf(stage.pdfBytes!)}>
+                  <FileType2 className="h-4 w-4" /> Download searchable PDF
+                </Button>
+              )}
+              <Button size="lg" variant={stage.pdfBytes ? "outline" : "default"} onClick={() => downloadTxt(stage.pageTexts)}>
+                <Download className="h-4 w-4" /> Download .txt
               </Button>
-              <Button variant="outline" onClick={() => setStage({ kind: "idle" })}>Run again</Button>
+              <Button variant="ghost" onClick={() => setStage({ kind: "idle" })}>Run again</Button>
             </div>
+            {stage.pdfBytes && (
+              <p className="mt-2 text-xs text-emerald-800/80">
+                The searchable PDF keeps your original page images and adds an invisible text layer beneath. Open in any PDF viewer and try Cmd/Ctrl+F to search.
+              </p>
+            )}
           </div>
           <details className="rounded-xl border border-slate-200 bg-white">
             <summary className="cursor-pointer p-3 text-sm font-medium">Preview extracted text</summary>

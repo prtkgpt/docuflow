@@ -9,6 +9,7 @@ import { checkAiLimit } from "@/lib/quotas";
 import { getOpenAI, getModel } from "@/lib/ai/openai";
 import { chunkText } from "@/lib/pdf/chunk";
 import { retrieveTopK } from "@/lib/ai/retrieval";
+import { embedBatch, embedText, rankByCosine } from "@/lib/ai/embeddings";
 import { estimateCostUsd, usdToCents, approxCharsForTokens } from "@/lib/ai/cost";
 import { aiErrorResponse } from "@/lib/ai/errors";
 
@@ -56,23 +57,49 @@ export async function POST(req: NextRequest) {
       if (chunks.length === 0) {
         return NextResponse.json({ error: "PDF has no text we can index." }, { status: 422 });
       }
-      await prisma.pdfChunk.createMany({
-        data: chunks.map((text, index) => ({ fileId: file.id, index, text })),
-        skipDuplicates: true,
-      });
+
+      // Embed all chunks in one batched OpenAI call. If the embedding
+      // service is unavailable we still write the chunks and the chat
+      // falls back to keyword retrieval.
+      const embeds = await embedBatch(chunks);
+      const data = chunks.map((text, index) => ({
+        fileId: file.id,
+        index,
+        text,
+        embedding: embeds?.vectors[index] ? JSON.stringify(embeds.vectors[index]) : null,
+      }));
+      await prisma.pdfChunk.createMany({ data, skipDuplicates: true });
       chunkRows = await prisma.pdfChunk.findMany({
         where: { fileId: file.id },
         orderBy: { index: "asc" },
       });
     }
 
-    // Retrieve only the most relevant chunks for this question. Cap the
-    // total context size at the plan's input-token budget.
-    const top = retrieveTopK(
-      chunkRows.map((c) => ({ index: c.index, text: c.text })),
-      question,
-      8,
-    );
+    // Retrieval: prefer embeddings (semantic) if every chunk has one;
+    // otherwise fall back to keyword scoring. Both produce the same
+    // top-K shape for the rest of the pipeline.
+    type Top = { index: number; text: string };
+    let top: Top[] = [];
+    const embeddable = chunkRows.every((c) => !!c.embedding);
+    if (embeddable) {
+      const qEmbed = await embedText(question);
+      if (qEmbed) {
+        const withVec = chunkRows.map((c) => ({
+          index: c.index,
+          text: c.text,
+          vector: safeParseEmbedding(c.embedding),
+        })).filter((c) => c.vector.length > 0);
+        const ranked = rankByCosine(withVec, qEmbed.vector, 8);
+        top = ranked.map((r) => ({ index: r.item.index, text: r.item.text }));
+      }
+    }
+    if (top.length === 0) {
+      top = retrieveTopK(
+        chunkRows.map((c) => ({ index: c.index, text: c.text })),
+        question,
+        8,
+      );
+    }
     const charBudget = approxCharsForTokens(check.maxInputTokens) - 2000; // reserve for prompt + question
     const selected: { index: number; text: string }[] = [];
     let used = 0;
@@ -215,4 +242,12 @@ async function incrementPlanUsage(userId: string, delta: {
       resetDate: reset,
     },
   });
+}
+
+function safeParseEmbedding(s: string | null): number[] {
+  if (!s) return [];
+  try {
+    const v = JSON.parse(s);
+    return Array.isArray(v) ? v.map(Number) : [];
+  } catch { return []; }
 }

@@ -178,6 +178,10 @@ model PdfChunk {
   fileId    String
   index     Int
   text      String   @db.Text
+  // 1536-dim float embedding from OpenAI text-embedding-3-small, stored
+  // as JSON. Omitted when embeddings aren't configured; chat falls back
+  // to keyword scoring in that case.
+  embedding String?  @db.Text
   createdAt DateTime @default(now())
 
   file File @relation(fields: [fileId], references: [id], onDelete: Cascade)

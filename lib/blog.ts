@@ -760,7 +760,102 @@ export const BLOG_POSTS: BlogPost[] = [
       { q: "What if the PDF is a scan?", a: "Run OCR first to extract the text, then summarize." },
     ],
   },
+  // -------------------------------------------------------------------
+  // Translation: language-pair posts. Each targets a "translate <lang>
+  // pdf to english" search. We only ship a curated set of the highest-
+  // volume language pairs here; the dynamic /tools/translate-pdf/[slug]
+  // pages cover the long tail of pair URLs even without a matching post.
+  // -------------------------------------------------------------------
+  {
+    slug: "how-to-translate-pdf-online-free",
+    title: "How to Translate a PDF Online Free",
+    description: "Translate any PDF between 25+ languages online with AI — free.",
+    category: "AI PDF",
+    publishedAt: "2026-03-01",
+    primaryToolHref: "/tools/translate-pdf",
+    primaryToolLabel: "Translate PDF Online Free",
+    relatedToolSlugs: ["translate-pdf", "ocr-pdf", "ai-summarizer", "chat-pdf"],
+    relatedPostSlug: "how-to-translate-hindi-pdf-to-english",
+    answer:
+      "To translate a PDF online for free, open MyPDFKitty's Translate PDF tool, upload your file, choose the source language (or auto-detect) and the target language, and click Translate. We extract the text via AI and return a clean translation you can copy or download.",
+    howToSteps: [
+      { name: "Open Translate PDF", text: "Go to MyPDFKitty's free PDF translator." },
+      { name: "Upload your PDF", text: "Drop a text-based PDF (run OCR first if it's a scan)." },
+      { name: "Pick languages", text: "Auto-detect the source or pick from 25 languages, then choose your target language." },
+      { name: "Translate", text: "Click Translate, then copy the result or download .txt." },
+    ],
+    body: [
+      { type: "h2", text: "What languages are supported?" },
+      { type: "p", text: "All 25 of the most-spoken languages — English, Spanish, French, German, Italian, Portuguese, Dutch, Polish, Russian, Turkish, Arabic, Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Urdu, Chinese, Japanese, Korean, Vietnamese, Thai, Indonesian, and Tagalog." },
+      { type: "h2", text: "Tips for good results" },
+      { type: "ul", items: [
+        "If your PDF is a scan, run OCR PDF first.",
+        "Auto-detect works well, but explicitly picking the source improves accuracy.",
+        "Numbers, dates, and names are preserved as-is.",
+      ] },
+    ],
+    faq: [
+      { q: "Is this really free?", a: "Free users get 1 translation per month. Paid plans include 25–250 per month." },
+      { q: "How accurate is it?", a: "Excellent for everyday documents. For legal, medical, or technical content, have a native speaker review." },
+    ],
+  },
+  ...buildTranslationPost("hindi", "english", "Hindi", "English"),
+  ...buildTranslationPost("spanish", "english", "Spanish", "English"),
+  ...buildTranslationPost("chinese", "english", "Chinese", "English"),
+  ...buildTranslationPost("french", "english", "French", "English"),
+  ...buildTranslationPost("arabic", "english", "Arabic", "English"),
+  ...buildTranslationPost("japanese", "english", "Japanese", "English"),
+  ...buildTranslationPost("korean", "english", "Korean", "English"),
+  ...buildTranslationPost("german", "english", "German", "English"),
+  ...buildTranslationPost("portuguese", "english", "Portuguese", "English"),
+  ...buildTranslationPost("russian", "english", "Russian", "English"),
 ];
+
+// Helper used by the language-pair posts above. Generated programmatically
+// so we can ship 10+ posts without duplicating boilerplate.
+function buildTranslationPost(
+  fromSlug: string, toSlug: string, fromName: string, toName: string,
+): BlogPost[] {
+  const slug = `how-to-translate-${fromSlug}-pdf-to-${toSlug}`;
+  return [{
+    slug,
+    title: `How to Translate ${fromName} PDF to ${toName} Online Free`,
+    description: `Convert a ${fromName} PDF into ${toName} online for free with AI. Step-by-step guide using MyPDFKitty.`,
+    category: "AI PDF",
+    publishedAt: "2026-03-01",
+    primaryToolHref: `/tools/translate-pdf/${fromSlug}-to-${toSlug}`,
+    primaryToolLabel: `Translate ${fromName} to ${toName}`,
+    relatedToolSlugs: ["translate-pdf", "ocr-pdf", "ai-summarizer", "chat-pdf"],
+    relatedPostSlug: "how-to-summarize-a-pdf-with-ai",
+    answer:
+      `To translate a ${fromName} PDF to ${toName} online for free, open MyPDFKitty's Translate PDF tool, upload your file, choose ${fromName} as the source and ${toName} as the target, and click Translate. We extract the text and use AI to translate it; copy the result or download a .txt file.`,
+    howToSteps: [
+      { name: `Open Translate ${fromName} → ${toName}`, text: `Go to MyPDFKitty's free ${fromName} to ${toName} translator.` },
+      { name: `Upload your ${fromName} PDF`, text: `Drop the PDF onto the upload box.` },
+      { name: "Translate", text: `Pick ${fromName} as the source and ${toName} as the target, then click Translate.` },
+      { name: "Read or download", text: `Copy the ${toName} translation or save it as a .txt file.` },
+    ],
+    body: [
+      { type: "h2", text: "When to use this" },
+      { type: "ul", items: [
+        `You received a ${fromName} contract or letter and need to read it in ${toName}.`,
+        `You're studying ${fromName}-language coursework or research papers.`,
+        `You're sending a ${fromName} draft to a ${toName}-speaking colleague.`,
+      ] },
+      { type: "callout", text: `Scanned PDF? Run OCR PDF first to extract the ${fromName} text — it works for ${fromName} and 25+ other languages right in your browser.` },
+      { type: "h2", text: "Common problems" },
+      { type: "ul", items: [
+        "Layout flattens — paragraphs are preserved, but tables, columns, and headers may need manual fixes.",
+        "Specialized terminology (legal, medical) — always have a native speaker review before signing or publishing.",
+      ] },
+    ],
+    faq: [
+      { q: "Is the translation accurate?", a: "Modern AI translation handles everyday text well. For legal, medical, or technical content, have a native speaker review the result." },
+      { q: "Is it really free?", a: "Free users get 1 translation per month. Paid plans (Kitty Plus from $2.99/mo) include 25–250 translations per month." },
+      { q: "What about scanned PDFs?", a: `Run OCR PDF first to extract the ${fromName} text, then translate. OCR runs in your browser and is also free.` },
+    ],
+  }];
+}
 
 export function getAllPosts(): BlogPost[] {
   return [...BLOG_POSTS].sort((a, b) =>
