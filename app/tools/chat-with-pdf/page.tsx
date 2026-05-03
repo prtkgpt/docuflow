@@ -1,4 +1,5 @@
 import { ToolPage } from "@/components/ToolPageLayout";
+import { InlineChatWithPdf } from "@/components/InlineChatWithPdf";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -14,7 +15,7 @@ export default function Page() {
       slug="chat-with-pdf"
       h1="Chat With PDF"
       intro="Ask questions about a PDF and get answers grounded in the document. Upload a contract, research paper, or report and chat with it like you'd chat with a teammate."
-      uploadRedirect="/editor?tool=chat"
+      runner={<InlineChatWithPdf />}
       metaTitle="Chat With PDF – Ask Questions About Your PDF | MyPDFKitty"
       metaDescription="Chat with your PDF using AI. Upload a document, ask questions, and get clear answers based on the file content."
       steps={[

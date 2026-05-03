@@ -1,4 +1,5 @@
 import { ToolPage } from "@/components/ToolPageLayout";
+import { InlineSummarizer } from "@/components/InlineSummarizer";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -14,7 +15,7 @@ export default function Page() {
       slug="ai-pdf-summarizer"
       h1="AI PDF Summarizer"
       intro="Get a short summary, highlights, key takeaways, and action items from any PDF in seconds. Upload a document, click summarize, and skim the result instead of reading 30 pages."
-      uploadRedirect="/editor?tool=summarize"
+      runner={<InlineSummarizer />}
       metaTitle="AI PDF Summarizer – Summarize PDFs Online | MyPDFKitty"
       metaDescription="Summarize long PDFs with AI. Upload a PDF and get a short summary, key points, takeaways, and action items with MyPDFKitty."
       steps={[

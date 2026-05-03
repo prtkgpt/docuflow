@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthOptions } from "@/components/auth/AuthOptions";
 import { SITE } from "@/lib/site";
 
 function SignupInner() {
@@ -65,6 +66,7 @@ function SignupInner() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <AuthOptions callbackUrl={callbackUrl} label="Sign up with Google" />
           <form className="space-y-4" onSubmit={submit}>
             <div>
               <Label htmlFor="email">Email</Label>

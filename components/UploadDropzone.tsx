@@ -55,7 +55,8 @@ export function UploadDropzone({ redirectTo = "/workspace", multiple = false, cl
           const id = await uploadOne(f, (p) => setProgress(p));
           ids.push(id);
         }
-        const target = `${redirectTo}?fileId=${encodeURIComponent(ids[0])}${
+        const sep = redirectTo.includes("?") ? "&" : "?";
+        const target = `${redirectTo}${sep}fileId=${encodeURIComponent(ids[0])}${
           ids.length > 1 ? `&extras=${encodeURIComponent(ids.slice(1).join(","))}` : ""
         }`;
         router.push(target);

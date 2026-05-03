@@ -30,6 +30,9 @@ export type ToolPageProps = {
   // For metadata + schema
   metaTitle: string;
   metaDescription: string;
+  // Optional client-rendered tool runner that replaces the default
+  // upload dropzone (used by AI summarizer and chat pages).
+  runner?: React.ReactNode;
 };
 
 export function ToolPage(props: ToolPageProps) {
@@ -85,7 +88,9 @@ export function ToolPage(props: ToolPageProps) {
             </ul>
           </div>
           <div id="upload">
-            <UploadDropzone redirectTo={props.uploadRedirect ?? "/editor"} multiple={props.multiple} />
+            {props.runner ?? (
+              <UploadDropzone redirectTo={props.uploadRedirect ?? "/editor"} multiple={props.multiple} />
+            )}
           </div>
         </div>
 

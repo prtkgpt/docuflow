@@ -48,6 +48,8 @@ Add the following under **Settings → Environment Variables** (Production, Prev
 | `UPLOAD_STORAGE_PROVIDER` | yes | `vercel-blob` for production |
 | `BLOB_READ_WRITE_TOKEN` | yes (with Blob) | From step 3 |
 | `ADMIN_EMAILS` | optional | Comma-separated emails allowed into `/master-admin` (the blog CMS) |
+| `GOOGLE_CLIENT_ID` | optional | Enables "Continue with Google" on `/login` and `/signup` (set both client id + secret) |
+| `GOOGLE_CLIENT_SECRET` | optional | Pair with `GOOGLE_CLIENT_ID`. Configure the OAuth consent + redirect URI `https://mypdfkitty.com/api/auth/callback/google` in Google Cloud Console |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | optional | Override the bundled Google Analytics ID. Set to an empty string to disable GA on a given environment (e.g. preview deploys). |
 
 ## 6. Deploy
