@@ -34,12 +34,18 @@ function buildProviders() {
         from: process.env.EMAIL_FROM || "MyPDFKitty <onboarding@resend.dev>",
         maxAge: 24 * 60 * 60, // 24h link lifetime
         async sendVerificationRequest({ identifier, url }) {
-          await sendEmail({
+          console.log("[auth] sendVerificationRequest", { to: identifier, urlHost: new URL(url).host });
+          const result = await sendEmail({
             to: identifier,
             subject: `Sign in to MyPDFKitty`,
             html: magicLinkHtml(url),
             text: `Sign in to MyPDFKitty: ${url}`,
           });
+          if (!result) {
+            // Surfacing this as a thrown error makes NextAuth return an
+            // EmailSignin error to the client so the UI can react.
+            throw new Error("Failed to send sign-in email — see Vercel logs");
+          }
         },
       }),
     );

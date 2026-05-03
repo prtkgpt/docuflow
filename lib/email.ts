@@ -26,25 +26,28 @@ export type SendOptions = {
 export async function sendEmail(opts: SendOptions): Promise<{ id: string } | null> {
   const r = client();
   if (!r) {
-    console.warn("[email] RESEND_API_KEY not set; skipping email", opts.subject);
+    console.warn("[email] RESEND_API_KEY not set; skipping email", { subject: opts.subject, to: opts.to });
     return null;
   }
+  const to = opts.to;
+  console.log("[email] sending", { to, subject: opts.subject, from: FROM_DEFAULT });
   try {
     const res = await r.emails.send({
       from: FROM_DEFAULT,
-      to: opts.to,
+      to,
       subject: opts.subject,
       html: opts.html,
       text: opts.text,
       replyTo: REPLY_TO,
     });
     if (res.error) {
-      console.error("[email] Resend error", res.error);
+      console.error("[email] Resend error", { to, subject: opts.subject, from: FROM_DEFAULT, error: res.error });
       return null;
     }
+    console.log("[email] sent", { id: res.data?.id, to, subject: opts.subject });
     return { id: res.data?.id || "" };
-  } catch (e) {
-    console.error("[email] send failed", e);
+  } catch (e: any) {
+    console.error("[email] send threw", { to, subject: opts.subject, from: FROM_DEFAULT, message: e?.message, name: e?.name });
     return null;
   }
 }
