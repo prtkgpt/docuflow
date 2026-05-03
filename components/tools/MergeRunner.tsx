@@ -6,6 +6,7 @@ import { Loader2, FileText, Download, RotateCcw, CheckCircle2, GripVertical, X, 
 import { Button } from "@/components/ui/button";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { formatBytes } from "@/lib/utils";
+import { asDownloadUrl } from "@/lib/download-url";
 
 type FileItem = { id: string; originalName: string; size: number };
 type ToolResponse = { url: string; size: number; name?: string };
@@ -126,7 +127,7 @@ function Inner({ endpoint, toolPath, cta, busyLabel }: Props) {
           <p className="font-semibold text-emerald-900 inline-flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Done</p>
           <p className="text-sm text-emerald-800">{result.name} ({formatBytes(result.size)})</p>
           <div className="mt-3 flex gap-2 flex-wrap">
-            <Button asChild size="lg"><a href={result.url} download={result.name}><Download className="h-4 w-4" /> Download</a></Button>
+            <Button asChild size="lg"><a href={asDownloadUrl(result.url, result.name)} download={result.name}><Download className="h-4 w-4" /> Download</a></Button>
             <Button asChild variant="outline"><Link href={toolPath}>Start over</Link></Button>
           </div>
         </div>

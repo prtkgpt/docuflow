@@ -13,13 +13,30 @@ export type StoredFile = {
 const provider = (process.env.UPLOAD_STORAGE_PROVIDER || "local").toLowerCase();
 const LOCAL_DIR = path.join(process.cwd(), "uploads");
 
+// Strip everything browsers/cloud storage might choke on, and cap length
+// so storage paths stay reasonable.
+function safeFilename(originalName: string, fallbackExt = ".bin"): string {
+  const ext = path.extname(originalName) || fallbackExt;
+  const stem = path
+    .basename(originalName, ext)
+    .normalize("NFKD")
+    .replace(/[^\w.\- ]+/g, "")
+    .replace(/\s+/g, "-")
+    .slice(0, 80) || "file";
+  return `${stem}${ext}`;
+}
+
 export async function saveBuffer(
   buffer: Buffer,
   originalName: string,
   mimeType = "application/pdf",
 ): Promise<StoredFile> {
-  const ext = path.extname(originalName) || ".bin";
-  const storedName = `${Date.now()}-${randomUUID()}${ext}`;
+  // We use a path of `<unique>/<readable-name>` so that when the file is
+  // downloaded later, the browser uses the final segment as the suggested
+  // filename. This way users see "invoice.pdf" instead of a UUID.
+  const unique = `${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const filename = safeFilename(originalName, mimeType.includes("pdf") ? ".pdf" : ".bin");
+  const storedName = `${unique}/${filename}`;
 
   if (provider === "vercel-blob" && process.env.BLOB_READ_WRITE_TOKEN) {
     const { put } = await import("@vercel/blob");
@@ -27,14 +44,14 @@ export async function saveBuffer(
       access: "public",
       contentType: mimeType,
       token: process.env.BLOB_READ_WRITE_TOKEN,
+      addRandomSuffix: false,
     });
     return { storedName, url: blob.url, size: buffer.length };
   }
 
-  // S3 hook: implement using @aws-sdk/client-s3 in production. The local
-  // fallback below keeps the dev flow working without cloud credentials.
-  await fs.mkdir(LOCAL_DIR, { recursive: true });
+  // Local fallback for dev — write to disk under a per-file directory.
   const fullPath = path.join(LOCAL_DIR, storedName);
+  await fs.mkdir(path.dirname(fullPath), { recursive: true });
   await fs.writeFile(fullPath, buffer);
   return {
     storedName,
@@ -44,9 +61,10 @@ export async function saveBuffer(
 }
 
 export async function readLocal(storedName: string): Promise<Buffer> {
-  // Only used when provider === "local". For cloud providers, fetch via URL.
-  const safe = path.basename(storedName);
-  return fs.readFile(path.join(LOCAL_DIR, safe));
+  // Allow nested paths like "<unique>/<filename>" but reject "../" segments.
+  const normalized = path.normalize(storedName).replace(/^([./\\])+/, "");
+  if (normalized.includes("..")) throw new Error("Invalid path");
+  return fs.readFile(path.join(LOCAL_DIR, normalized));
 }
 
 export async function readByUrlOrName(urlOrName: string): Promise<Buffer> {

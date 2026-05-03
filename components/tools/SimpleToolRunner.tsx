@@ -6,6 +6,7 @@ import { Loader2, FileText, Download, RotateCcw, CheckCircle2 } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { formatBytes } from "@/lib/utils";
+import { asDownloadUrl } from "@/lib/download-url";
 
 export type SimpleToolRunnerProps = {
   // Where this tool lives (used to build the redirect-after-upload URL).
@@ -130,7 +131,7 @@ function Inner(props: SimpleToolRunnerProps) {
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button asChild size="lg">
-              <a href={result.url} download={result.name}>
+              <a href={asDownloadUrl(result.url, result.name)} download={result.name}>
                 <Download className="h-4 w-4" /> Download
               </a>
             </Button>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { formatBytes } from "@/lib/utils";
+import { asDownloadUrl } from "@/lib/download-url";
 
 type ToolResponse = { url: string; size: number; name?: string };
 
@@ -86,7 +87,7 @@ function Inner() {
           <p className="font-semibold text-emerald-900 inline-flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Done</p>
           <p className="text-sm text-emerald-800">{result.name} ({formatBytes(result.size)})</p>
           <div className="mt-3 flex gap-2 flex-wrap">
-            <Button asChild size="lg"><a href={result.url} download={result.name}><Download className="h-4 w-4" /> Download</a></Button>
+            <Button asChild size="lg"><a href={asDownloadUrl(result.url, result.name)} download={result.name}><Download className="h-4 w-4" /> Download</a></Button>
             <Button variant="outline" onClick={() => setResult(null)}>Try other pages</Button>
           </div>
         </div>
