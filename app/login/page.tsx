@@ -16,7 +16,10 @@ import { SITE } from "@/lib/site";
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || "/dashboard";
+  // Only allow same-origin callback URLs. Defends against open-redirect
+  // abuse and removes a heuristic some phishing scanners flag on.
+  const rawCallback = params.get("callbackUrl");
+  const callbackUrl = isSafeCallback(rawCallback) ? (rawCallback as string) : "/dashboard";
   const checkEmail = params.get("check") === "email";
 
   const [email, setEmail] = useState("");
@@ -70,8 +73,11 @@ function LoginInner() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>Sign in to {SITE.name} with a magic link sent to your email.</CardDescription>
+        <CardTitle>Sign in to {SITE.name}</CardTitle>
+        <CardDescription>
+          {SITE.name} is an online PDF utility for compressing, converting, editing,
+          signing, and summarizing PDFs. We&apos;ll email you a one-time sign-in link.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <AuthOptions callbackUrl={callbackUrl} />
@@ -109,4 +115,19 @@ export default function LoginPage() {
       <Footer />
     </>
   );
+}
+
+// Same-origin callback guard. Accepts a relative path (starts with "/")
+// or an absolute URL whose origin matches NEXT_PUBLIC_SITE / SITE.url.
+// Anything else falls through to /dashboard so we never bounce a
+// signed-in user out to an attacker-supplied URL.
+function isSafeCallback(raw: string | null | undefined): boolean {
+  if (!raw) return false;
+  if (raw.startsWith("/") && !raw.startsWith("//")) return true;
+  try {
+    const u = new URL(raw);
+    return u.host === "mypdfkitty.com" || u.host === "www.mypdfkitty.com";
+  } catch {
+    return false;
+  }
 }

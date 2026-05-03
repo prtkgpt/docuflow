@@ -1,0 +1,10 @@
+Contact: mailto:hello@mypdfkitty.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://mypdfkitty.com/.well-known/security.txt
+Policy: https://mypdfkitty.com/security
+Acknowledgments: https://mypdfkitty.com/security
+# MyPDFKitty is an online PDF utility (compress, convert, edit, sign,
+# summarize). We do not impersonate any other brand. Files are uploaded
+# over HTTPS, isolated to user accounts, and deletable on demand.
+# Report security issues via the Contact email above.
