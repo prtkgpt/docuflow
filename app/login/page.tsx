@@ -92,6 +92,9 @@ function LoginInner() {
             {busy ? "Sending…" : "Email me a sign-in link"}
           </Button>
           <p className="text-xs text-slate-500 text-center">
+            Tip: if the link doesn&apos;t arrive in a minute, check your spam folder.
+          </p>
+          <p className="text-xs text-slate-500 text-center">
             New here?{" "}
             <Link href={`/signup${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="text-brand-700 underline">
               Create a free account
