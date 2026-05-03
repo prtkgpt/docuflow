@@ -48,6 +48,7 @@ Add the following under **Settings → Environment Variables** (Production, Prev
 | `UPLOAD_STORAGE_PROVIDER` | yes | `vercel-blob` for production |
 | `BLOB_READ_WRITE_TOKEN` | yes (with Blob) | From step 3 |
 | `ADMIN_EMAILS` | optional | Comma-separated emails allowed into `/master-admin` (the blog CMS) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | optional | Override the bundled Google Analytics ID. Set to an empty string to disable GA on a given environment (e.g. preview deploys). |
 
 ## 6. Deploy
 
