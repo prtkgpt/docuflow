@@ -46,6 +46,7 @@ export const TOOLS: Tool[] = [
   { slug: "split-pdf", name: "Split PDF", description: "Extract pages or split into multiple PDFs.", href: "/tools/split-pdf", icon: Scissors, categories: ["edit"] },
   { slug: "rotate-pdf", name: "Rotate PDF", description: "Rotate selected pages 90, 180 or 270 degrees.", href: "/workspace?tool=rotate", icon: RotateCw, categories: ["edit"] },
   { slug: "sign-pdf", name: "Sign PDF", description: "Add typed, drawn, or uploaded signatures.", href: "/tools/sign-pdf", icon: PenTool, categories: ["edit"] },
+  { slug: "send-for-signature", name: "Send for Signature", description: "Email a PDF to others for signing — like Docusign, free to 10/mo.", href: "/tools/send-for-signature", icon: PenTool, categories: ["edit"] },
   { slug: "annotate-pdf", name: "Annotate PDF", description: "Add notes, highlights and text boxes.", href: "/editor", icon: Highlighter, categories: ["edit"] },
   { slug: "delete-pages", name: "Delete Pages", description: "Remove pages you don't need.", href: "/workspace?tool=delete", icon: Trash2, categories: ["edit"] },
   { slug: "extract-pages", name: "Extract Pages", description: "Pull selected pages into a new PDF.", href: "/workspace?tool=extract", icon: FileOutput, categories: ["edit"] },

@@ -88,6 +88,58 @@ export function welcomeHtml(name?: string | null): string {
 </div>`;
 }
 
+export function envelopeInviteHtml(opts: {
+  senderName: string;
+  signerName: string;
+  subject: string;
+  message?: string | null;
+  signUrl: string;
+}): string {
+  return `
+<div style="${baseStyle}">
+  <h1 style="font-size: 22px; margin: 0 0 12px;">${escapeHtml(opts.senderName)} sent you a document to sign</h1>
+  <p style="color: #475569; font-weight: 600;">${escapeHtml(opts.subject)}</p>
+  ${opts.message ? `<p style="white-space: pre-wrap; color: #334155; background: #f8fafc; border-left: 3px solid #1f5cf2; padding: 12px 14px; border-radius: 8px;">${escapeHtml(opts.message)}</p>` : ""}
+  <p>Hi ${escapeHtml(opts.signerName)}, click the button below to review and sign the document. It only takes a minute — no account required.</p>
+  <p style="margin: 24px 0;"><a href="${opts.signUrl}" style="${buttonStyle}">Review & sign</a></p>
+  <p style="color: #64748b; font-size: 13px;">If the button doesn't work, paste this link into your browser:</p>
+  <p style="word-break: break-all; color: #475569; font-size: 13px;">${opts.signUrl}</p>
+  <p style="color: #94a3b8; font-size: 12px; margin-top: 32px;">Powered by ${SITE.name}.</p>
+</div>`;
+}
+
+export function envelopeReminderHtml(opts: {
+  senderName: string;
+  signerName: string;
+  subject: string;
+  signUrl: string;
+}): string {
+  return `
+<div style="${baseStyle}">
+  <h1 style="font-size: 22px; margin: 0 0 12px;">Reminder: please sign "${escapeHtml(opts.subject)}"</h1>
+  <p>Hi ${escapeHtml(opts.signerName)}, just a friendly reminder from ${escapeHtml(opts.senderName)} that this document is still waiting for your signature.</p>
+  <p style="margin: 24px 0;"><a href="${opts.signUrl}" style="${buttonStyle}">Review & sign</a></p>
+  <p style="color: #94a3b8; font-size: 12px; margin-top: 32px;">If you've already signed, you can ignore this email.</p>
+</div>`;
+}
+
+export function envelopeCompletedHtml(opts: {
+  subject: string;
+  downloadUrl: string;
+  forSender: boolean;
+}): string {
+  const headline = opts.forSender
+    ? `Everyone has signed "${escapeHtml(opts.subject)}"`
+    : `"${escapeHtml(opts.subject)}" is fully signed`;
+  return `
+<div style="${baseStyle}">
+  <h1 style="font-size: 22px; margin: 0 0 12px;">${headline}</h1>
+  <p>The signed PDF is ready to download.</p>
+  <p style="margin: 24px 0;"><a href="${opts.downloadUrl}" style="${buttonStyle}">Download signed PDF</a></p>
+  <p style="color: #94a3b8; font-size: 12px; margin-top: 32px;">Keep this email for your records — the link is private.</p>
+</div>`;
+}
+
 export function fileReadyHtml(opts: { fileName: string; toolName: string; downloadUrl: string }): string {
   return `
 <div style="${baseStyle}">

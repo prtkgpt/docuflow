@@ -27,6 +27,7 @@ model User {
   aiRequests    AIRequest[]
   aiUsage       AIUsage[]
   planUsage     PlanUsage?
+  envelopes     Envelope[]
 }
 
 model Account {
@@ -244,4 +245,98 @@ model PlanUsage {
   resetDate               DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Send-for-signature ("envelope") workflow — Docusign-style send a PDF to
+// one or more recipients, each gets a tokenized signing link, and we track
+// view/sign events for an audit trail.
+// ---------------------------------------------------------------------------
+
+model Envelope {
+  id           String   @id @default(cuid())
+  userId       String
+  // Source PDF (the unsigned document the sender uploaded).
+  sourceFileId String
+  // Final signed PDF — populated once every recipient has signed.
+  signedFileId String?
+  subject      String
+  message      String?  @db.Text
+  // draft | sent | viewed | completed | declined | voided
+  status       String   @default("draft")
+  createdAt    DateTime @default(now())
+  sentAt       DateTime?
+  completedAt  DateTime?
+  // Soft-delete so we can keep history for audit trails.
+  deletedAt    DateTime?
+
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipients EnvelopeRecipient[]
+  fields     EnvelopeField[]
+  events     EnvelopeEvent[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model EnvelopeRecipient {
+  id            String   @id @default(cuid())
+  envelopeId    String
+  name          String
+  email         String
+  order         Int      @default(1)
+  // pending | sent | viewed | signed | declined
+  status        String   @default("pending")
+  signingToken  String   @unique
+  signedAt      DateTime?
+  viewedAt      DateTime?
+  declinedAt    DateTime?
+  declineReason String?
+  signerIp      String?
+  signerUa      String?  @db.Text
+  remindedAt    DateTime?
+  remindCount   Int       @default(0)
+
+  envelope Envelope        @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
+  fields   EnvelopeField[]
+
+  @@index([envelopeId])
+  @@index([signingToken])
+}
+
+model EnvelopeField {
+  id          String  @id @default(cuid())
+  envelopeId  String
+  recipientId String
+  // signature | initials | date | text | checkbox
+  type        String
+  page        Int     @default(1)
+  x           Float
+  y           Float
+  width       Float
+  height      Float
+  required    Boolean @default(true)
+  value       String? @db.Text
+  filledAt    DateTime?
+
+  envelope  Envelope          @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
+  recipient EnvelopeRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([envelopeId])
+  @@index([recipientId])
+}
+
+model EnvelopeEvent {
+  id          String   @id @default(cuid())
+  envelopeId  String
+  recipientId String?
+  type        String
+  ip          String?
+  userAgent   String?  @db.Text
+  meta        String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  envelope Envelope @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
+
+  @@index([envelopeId, createdAt])
 }

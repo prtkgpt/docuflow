@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { LayoutDashboard, Files, CreditCard } from "lucide-react";
+import { LayoutDashboard, Files, CreditCard, FileSignature } from "lucide-react";
 
 const NAV = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/files", label: "Files", icon: Files },
+  { href: "/dashboard/envelopes", label: "Send for signature", icon: FileSignature },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
 ];
 

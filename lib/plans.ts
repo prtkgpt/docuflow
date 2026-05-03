@@ -54,6 +54,7 @@ export const PLANS: Plan[] = [
       "Rotate PDF",
       "Delete pages",
       "Sign PDF",
+      "Send for signature — 10 envelopes per month",
       "1 AI summary per month",
       "3 PDF chat questions per month",
     ],
@@ -77,6 +78,7 @@ export const PLANS: Plan[] = [
     features: [
       "200 files per month",
       "Max 100 MB per file",
+      "Send for signature — 50 envelopes per month",
       "25 AI summaries per month",
       "100 PDF chat questions per month",
       "Up to 75,000 tokens per document",
@@ -105,6 +107,7 @@ export const PLANS: Plan[] = [
     features: [
       "1,000 files per month",
       "Max 250 MB per file",
+      "Send for signature — 200 envelopes per month",
       "100 AI summaries per month",
       "500 PDF chat questions per month",
       "Up to 200,000 tokens per document",
@@ -132,6 +135,7 @@ export const PLANS: Plan[] = [
     features: [
       "3 team seats included",
       "3,000 PDF actions per month",
+      "Send for signature — 1,000 envelopes per month",
       "250 AI summaries per month (shared)",
       "1,000 PDF chat questions per month (shared)",
       "Up to 250,000 tokens per document",

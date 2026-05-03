@@ -175,3 +175,70 @@ CREATE TABLE IF NOT EXISTS "PlanUsage" (
 );
 
 ALTER TABLE "PdfChunk" ADD COLUMN IF NOT EXISTS "embedding" TEXT;
+
+-- Send-for-signature ("envelope") workflow ---------------------------------
+
+CREATE TABLE IF NOT EXISTS "Envelope" (
+  "id"           TEXT PRIMARY KEY,
+  "userId"       TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+  "sourceFileId" TEXT NOT NULL,
+  "signedFileId" TEXT,
+  "subject"      TEXT NOT NULL,
+  "message"      TEXT,
+  "status"       TEXT NOT NULL DEFAULT 'draft',
+  "createdAt"    TIMESTAMP NOT NULL DEFAULT NOW(),
+  "sentAt"       TIMESTAMP,
+  "completedAt"  TIMESTAMP,
+  "deletedAt"    TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "Envelope_userId_createdAt_idx" ON "Envelope"("userId", "createdAt");
+CREATE INDEX IF NOT EXISTS "Envelope_status_idx" ON "Envelope"("status");
+
+CREATE TABLE IF NOT EXISTS "EnvelopeRecipient" (
+  "id"            TEXT PRIMARY KEY,
+  "envelopeId"    TEXT NOT NULL REFERENCES "Envelope"("id") ON DELETE CASCADE,
+  "name"          TEXT NOT NULL,
+  "email"         TEXT NOT NULL,
+  "order"         INTEGER NOT NULL DEFAULT 1,
+  "status"        TEXT NOT NULL DEFAULT 'pending',
+  "signingToken"  TEXT UNIQUE NOT NULL,
+  "signedAt"      TIMESTAMP,
+  "viewedAt"      TIMESTAMP,
+  "declinedAt"    TIMESTAMP,
+  "declineReason" TEXT,
+  "signerIp"      TEXT,
+  "signerUa"      TEXT,
+  "remindedAt"    TIMESTAMP,
+  "remindCount"   INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS "EnvelopeRecipient_envelopeId_idx" ON "EnvelopeRecipient"("envelopeId");
+CREATE INDEX IF NOT EXISTS "EnvelopeRecipient_signingToken_idx" ON "EnvelopeRecipient"("signingToken");
+
+CREATE TABLE IF NOT EXISTS "EnvelopeField" (
+  "id"          TEXT PRIMARY KEY,
+  "envelopeId"  TEXT NOT NULL REFERENCES "Envelope"("id") ON DELETE CASCADE,
+  "recipientId" TEXT NOT NULL REFERENCES "EnvelopeRecipient"("id") ON DELETE CASCADE,
+  "type"        TEXT NOT NULL,
+  "page"        INTEGER NOT NULL DEFAULT 1,
+  "x"           DOUBLE PRECISION NOT NULL,
+  "y"           DOUBLE PRECISION NOT NULL,
+  "width"       DOUBLE PRECISION NOT NULL,
+  "height"      DOUBLE PRECISION NOT NULL,
+  "required"    BOOLEAN NOT NULL DEFAULT TRUE,
+  "value"       TEXT,
+  "filledAt"    TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "EnvelopeField_envelopeId_idx" ON "EnvelopeField"("envelopeId");
+CREATE INDEX IF NOT EXISTS "EnvelopeField_recipientId_idx" ON "EnvelopeField"("recipientId");
+
+CREATE TABLE IF NOT EXISTS "EnvelopeEvent" (
+  "id"          TEXT PRIMARY KEY,
+  "envelopeId"  TEXT NOT NULL REFERENCES "Envelope"("id") ON DELETE CASCADE,
+  "recipientId" TEXT,
+  "type"        TEXT NOT NULL,
+  "ip"          TEXT,
+  "userAgent"   TEXT,
+  "meta"        TEXT,
+  "createdAt"   TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS "EnvelopeEvent_env_idx" ON "EnvelopeEvent"("envelopeId", "createdAt");
