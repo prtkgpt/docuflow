@@ -111,7 +111,11 @@ function Inner() {
   }
 
   function downloadPdf(bytes: Uint8Array) {
-    const blob = new Blob([bytes], { type: "application/pdf" });
+    // Copy into a fresh ArrayBuffer (typed as ArrayBuffer, not
+    // ArrayBufferLike) so TS's strict BlobPart accepts the value.
+    const ab: ArrayBuffer = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(ab).set(bytes);
+    const blob = new Blob([ab], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
