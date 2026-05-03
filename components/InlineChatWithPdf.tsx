@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { UploadDropzone } from "@/components/UploadDropzone";
 
 type Turn = { role: "user" | "assistant"; text: string; pages?: number[] };
-type Usage = { signedIn: boolean; plan?: "free" | "plus" | "pro" | "business"; used?: number; limit?: number };
+type Usage = {
+  signedIn: boolean;
+  plan?: "free" | "plus" | "pro" | "business";
+  chatUsed?: number; chatLimit?: number;
+  chatCredits?: number;
+  resetDate?: string;
+};
 
 function Inner() {
   const params = useSearchParams();
@@ -155,13 +161,21 @@ function Inner() {
 
 function UsageBadge({ usage }: { usage: Usage | null }) {
   if (!usage || !usage.signedIn || !usage.plan) return null;
-  if (usage.plan === "business") return null;
-  const remaining = Math.max(0, (usage.limit ?? 0) - (usage.used ?? 0));
-  const tone = remaining === 0 ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-600";
+  const used = usage.chatUsed ?? 0;
+  const limit = usage.chatLimit ?? 0;
+  const remaining = Math.max(0, limit - used);
+  const tone = remaining === 0 && (usage.chatCredits ?? 0) === 0
+    ? "border-amber-300 bg-amber-50 text-amber-900"
+    : "border-slate-200 bg-slate-50 text-slate-600";
+  const planLabel = usage.plan === "plus" ? "Kitty Plus" : usage.plan === "pro" ? "Kitty Pro" : usage.plan;
   return (
-    <div className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
-      <span className="capitalize">{(usage.plan === "plus" ? "Kitty Plus" : usage.plan === "pro" ? "Kitty Pro" : usage.plan)}</span> plan · {usage.used} / {usage.limit} questions this month
-      {remaining === 0 && <Link href="/pricing" className="font-medium underline">Upgrade</Link>}
+    <div className={`mt-3 inline-flex flex-wrap items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
+      <span className="capitalize">{planLabel}</span>
+      <span>· {used} / {limit} questions this month</span>
+      {(usage.chatCredits ?? 0) > 0 && <span>· +{usage.chatCredits} credits</span>}
+      {remaining === 0 && (usage.chatCredits ?? 0) === 0 && (
+        <Link href="/pricing" className="font-medium underline">Add credits</Link>
+      )}
     </div>
   );
 }

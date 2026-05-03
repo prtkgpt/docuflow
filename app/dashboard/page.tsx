@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatBytes } from "@/lib/utils";
-import { getUserQuota } from "@/lib/quotas";
+import { getUserQuota, getAiUsageThisMonth } from "@/lib/quotas";
 import { getPlan } from "@/lib/plans";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,8 @@ export default async function DashboardPage() {
   const plan = getPlan(quota.plan);
   const usagePct = Math.min(100, Math.round((quota.used / Math.max(1, quota.filesLimit)) * 100));
   const periodLabel = quota.filesPeriod === "day" ? "today" : "this month";
+  const ai = await getAiUsageThisMonth(userId);
+  const resetDate = new Date(ai.resetDate).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
   return (
     <div className="space-y-6">
@@ -78,6 +80,30 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">AI usage this month</CardTitle>
+          <CardDescription>Resets {resetDate}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <UsageBar label="AI summaries" used={ai.summariesUsed} limit={ai.summariesLimit} />
+          <UsageBar
+            label="PDF chat questions"
+            used={ai.chatUsed}
+            limit={ai.chatLimit}
+            extra={ai.chatCredits ? `+${ai.chatCredits} credit pack questions` : undefined}
+          />
+          <div className="sm:col-span-2 flex flex-wrap gap-2">
+            {(ai.summariesUsed >= ai.summariesLimit || ai.chatUsed >= ai.chatLimit) && quota.plan !== "business" && (
+              <Button asChild><Link href="/pricing">Upgrade plan</Link></Button>
+            )}
+            {ai.chatUsed >= ai.chatLimit && (
+              <Button asChild variant="outline"><Link href="/pricing#credit-packs">Add AI credits</Link></Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Recent files</CardTitle></CardHeader>
@@ -104,6 +130,22 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function UsageBar({ label, used, limit, extra }: { label: string; used: number; limit: number; extra?: string }) {
+  const pct = Math.min(100, Math.round((used / Math.max(1, limit)) * 100));
+  return (
+    <div>
+      <div className="flex items-baseline justify-between text-sm">
+        <span className="font-medium text-slate-800">{label}</span>
+        <span className="text-slate-500 tabular-nums">{used} / {limit}</span>
+      </div>
+      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+        <div className={pct >= 100 ? "h-full bg-amber-500" : "h-full bg-brand-600"} style={{ width: `${pct}%` }} />
+      </div>
+      {extra && <p className="mt-1 text-xs text-slate-500">{extra}</p>}
     </div>
   );
 }

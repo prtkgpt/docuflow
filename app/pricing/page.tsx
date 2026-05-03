@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { PricingClient } from "@/components/pricing/PricingClient";
+import { CreditPacks } from "@/components/pricing/CreditPacks";
 import { ComparisonSection } from "@/components/pricing/ComparisonSection";
 import { PricingFAQ, PricingFaqLd } from "@/components/pricing/PricingFAQ";
 import { buildMetadata, breadcrumbLd } from "@/lib/seo";
@@ -19,6 +20,7 @@ export default function PricingPage() {
       <JsonLd data={[breadcrumbLd([{ name: "Pricing", path: "/pricing" }]), PricingFaqLd()]} />
       <Header />
       <PricingClient />
+      <CreditPacks />
       <ComparisonSection />
       <PricingFAQ />
       <Footer />

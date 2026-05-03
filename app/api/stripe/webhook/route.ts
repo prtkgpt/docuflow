@@ -20,31 +20,44 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Invalid signature: ${err.message}` }, { status: 400 });
   }
 
-  // We track only the minimum needed to reflect plan changes in the UI.
+  // checkout.session.completed handles two kinds of purchases:
+  //   1. Subscription start (cs.mode === "subscription") → upsert the
+  //      user's Subscription row.
+  //   2. AI credit pack one-time payment (metadata.purchase === "credit_pack")
+  //      → bump user.chatQuestionsCredits.
   if (event.type === "checkout.session.completed") {
     const cs = event.data.object as Stripe.Checkout.Session;
     const email = cs.customer_email;
-    const plan = (cs.metadata?.plan as "plus" | "pro" | "business" | undefined) ?? "plus";
-    if (email) {
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (user) {
-        await prisma.subscription.upsert({
-          where: { userId: user.id },
-          update: {
-            plan,
-            status: "active",
-            stripeCustomerId: typeof cs.customer === "string" ? cs.customer : null,
-            stripeSubscriptionId: typeof cs.subscription === "string" ? cs.subscription : null,
-          },
-          create: {
-            userId: user.id,
-            plan,
-            status: "active",
-            stripeCustomerId: typeof cs.customer === "string" ? cs.customer : null,
-            stripeSubscriptionId: typeof cs.subscription === "string" ? cs.subscription : null,
-          },
+    if (!email) return NextResponse.json({ received: true });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return NextResponse.json({ received: true });
+
+    if (cs.metadata?.purchase === "credit_pack") {
+      const questions = parseInt(cs.metadata.questions ?? "0", 10);
+      if (questions > 0) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { chatQuestionsCredits: { increment: questions } },
         });
       }
+    } else {
+      const plan = (cs.metadata?.plan as "plus" | "pro" | "business" | undefined) ?? "plus";
+      await prisma.subscription.upsert({
+        where: { userId: user.id },
+        update: {
+          plan,
+          status: "active",
+          stripeCustomerId: typeof cs.customer === "string" ? cs.customer : null,
+          stripeSubscriptionId: typeof cs.subscription === "string" ? cs.subscription : null,
+        },
+        create: {
+          userId: user.id,
+          plan,
+          status: "active",
+          stripeCustomerId: typeof cs.customer === "string" ? cs.customer : null,
+          stripeSubscriptionId: typeof cs.subscription === "string" ? cs.subscription : null,
+        },
+      });
     }
   }
 

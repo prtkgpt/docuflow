@@ -24,11 +24,11 @@ export function PricingClient() {
           <Sparkles className="h-3 w-3" /> Starts at $2.99/mo
         </span>
         <h1 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-          PDF tools that cost less than coffee
+          Affordable PDF tools with fair AI limits
         </h1>
         <p className="mt-3 text-lg text-slate-600">
-          Start free. Upgrade for AI summaries, larger files, saved history, and team tools —
-          starting at $2.99/month.
+          Use basic PDF tools for free. Upgrade for AI summaries, PDF chat, larger files,
+          saved history, OCR, and team workflows.
         </p>
       </div>
 

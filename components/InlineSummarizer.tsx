@@ -13,7 +13,14 @@ type Summary = {
   actions: string[];
 };
 
-type Usage = { signedIn: boolean; plan?: "free" | "plus" | "pro" | "business"; used?: number; limit?: number; maxChars?: number };
+type Usage = {
+  signedIn: boolean;
+  plan?: "free" | "plus" | "pro" | "business";
+  summariesUsed?: number; summariesLimit?: number;
+  chatUsed?: number; chatLimit?: number;
+  chatCredits?: number;
+  resetDate?: string;
+};
 
 function Inner() {
   const params = useSearchParams();
@@ -134,12 +141,16 @@ function Inner() {
 
 function UsageBadge({ usage, kind }: { usage: Usage | null; kind: "summary" | "chat" }) {
   if (!usage || !usage.signedIn || !usage.plan) return null;
-  if (usage.plan === "business") return null;
-  const remaining = Math.max(0, (usage.limit ?? 0) - (usage.used ?? 0));
+  const used = kind === "summary" ? (usage.summariesUsed ?? 0) : (usage.chatUsed ?? 0);
+  const limit = kind === "summary" ? (usage.summariesLimit ?? 0) : (usage.chatLimit ?? 0);
+  const remaining = Math.max(0, limit - used);
   const tone = remaining === 0 ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-600";
+  const planLabel = usage.plan === "plus" ? "Kitty Plus" : usage.plan === "pro" ? "Kitty Pro" : usage.plan;
   return (
-    <div className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
-      <span className="capitalize">{(usage.plan === "plus" ? "Kitty Plus" : usage.plan === "pro" ? "Kitty Pro" : usage.plan)}</span> plan · {usage.used} / {usage.limit} {kind === "summary" ? "summaries" : "questions"} this month
+    <div className={`mt-3 inline-flex flex-wrap items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
+      <span className="capitalize">{planLabel}</span>
+      <span>· {used} / {limit} {kind === "summary" ? "summaries" : "questions"} this month</span>
+      {kind === "chat" && (usage.chatCredits ?? 0) > 0 && <span>· +{usage.chatCredits} credits</span>}
       {remaining === 0 && (
         <Link href="/pricing" className="font-medium underline">Upgrade</Link>
       )}

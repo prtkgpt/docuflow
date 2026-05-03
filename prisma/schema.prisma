@@ -13,6 +13,8 @@ model User {
   email         String   @unique
   emailVerified DateTime?
   image         String?
+  // One-time chat-question credits the user has purchased via AI credit packs.
+  chatQuestionsCredits Int @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -23,6 +25,8 @@ model User {
   toolUsage     ToolUsage[]
   subscription  Subscription?
   aiRequests    AIRequest[]
+  aiUsage       AIUsage[]
+  planUsage     PlanUsage?
 }
 
 model Account {
@@ -76,6 +80,9 @@ model File {
   processed ProcessedFile[]
   usage     ToolUsage[]
   ai        AIRequest[]
+  chunks    PdfChunk[]
+  summary   PdfSummary?
+  aiUsage   AIUsage[]
 
   @@index([userId])
 }
@@ -157,4 +164,80 @@ model BlogPost {
   updatedAt         DateTime  @updatedAt
 
   @@index([published, publishedAt])
+}
+
+// ---------------------------------------------------------------------------
+// AI cost / metering primitives
+// ---------------------------------------------------------------------------
+
+// Cached extraction chunks for a PDF. We chunk once on first AI use, then
+// reuse for every subsequent chat question — avoids re-extracting and
+// re-tokenizing on every call.
+model PdfChunk {
+  id        String   @id @default(cuid())
+  fileId    String
+  index     Int
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, index])
+  @@index([fileId])
+}
+
+// Cached summary so we don't re-bill OpenAI when the same PDF is summarized
+// twice. Re-running with ?fresh=1 (future) bypasses the cache.
+model PdfSummary {
+  id            String   @id @default(cuid())
+  fileId        String   @unique
+  short         String   @db.Text
+  bullets       String   @db.Text  // JSON array of strings
+  takeaways     String   @db.Text
+  actions       String   @db.Text
+  model         String
+  inputTokens   Int      @default(0)
+  outputTokens  Int      @default(0)
+  estimatedCost Decimal  @default(0) @db.Decimal(12, 6)
+  createdAt     DateTime @default(now())
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+}
+
+// One row per AI call, used for admin cost dashboards and per-user
+// rolling totals. AIRequest stays as the user-facing log; this is the
+// finance ledger.
+model AIUsage {
+  id            String   @id @default(cuid())
+  userId        String?
+  fileId        String?
+  featureType   String   // "summarize" | "chat"
+  model         String
+  inputTokens   Int      @default(0)
+  outputTokens  Int      @default(0)
+  estimatedCost Decimal  @default(0) @db.Decimal(12, 6)
+  createdAt     DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  file File? @relation(fields: [fileId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([fileId])
+}
+
+// Rolling monthly counters per user. Updated on every action; reset
+// lazily when resetDate has passed (handled at write time).
+model PlanUsage {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  plan                    String
+  filesUsed               Int      @default(0)
+  summariesUsed           Int      @default(0)
+  chatQuestionsUsed       Int      @default(0)
+  inputTokensUsed         Int      @default(0)
+  outputTokensUsed        Int      @default(0)
+  estimatedCostMonthCents Int      @default(0)
+  resetDate               DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

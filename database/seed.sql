@@ -166,3 +166,57 @@ INSERT INTO "AIRequest" ("id", "userId", "fileId", "requestType", "prompt", "res
 VALUES
   ('ai_demo_1', 'user_demo_2', 'file_demo_3', 'summarize', 'Summarize the attached PDF.', 'This is a sample AI-generated summary used for demo purposes.', 320, NOW())
 ON CONFLICT ("id") DO NOTHING;
+
+-- AI metering tables (mirrored from schema.sql for self-contained seeding).
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "chatQuestionsCredits" INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS "PdfChunk" (
+  "id"        TEXT PRIMARY KEY,
+  "fileId"    TEXT NOT NULL REFERENCES "File"("id") ON DELETE CASCADE,
+  "index"     INTEGER NOT NULL,
+  "text"      TEXT NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE ("fileId", "index")
+);
+CREATE INDEX IF NOT EXISTS "PdfChunk_fileId_idx" ON "PdfChunk"("fileId");
+
+CREATE TABLE IF NOT EXISTS "PdfSummary" (
+  "id"            TEXT PRIMARY KEY,
+  "fileId"        TEXT UNIQUE NOT NULL REFERENCES "File"("id") ON DELETE CASCADE,
+  "short"         TEXT NOT NULL,
+  "bullets"       TEXT NOT NULL,
+  "takeaways"     TEXT NOT NULL,
+  "actions"       TEXT NOT NULL,
+  "model"         TEXT NOT NULL,
+  "inputTokens"   INTEGER NOT NULL DEFAULT 0,
+  "outputTokens"  INTEGER NOT NULL DEFAULT 0,
+  "estimatedCost" DECIMAL(12, 6) NOT NULL DEFAULT 0,
+  "createdAt"     TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS "AIUsage" (
+  "id"            TEXT PRIMARY KEY,
+  "userId"        TEXT REFERENCES "User"("id") ON DELETE SET NULL,
+  "fileId"        TEXT REFERENCES "File"("id") ON DELETE SET NULL,
+  "featureType"   TEXT NOT NULL,
+  "model"         TEXT NOT NULL,
+  "inputTokens"   INTEGER NOT NULL DEFAULT 0,
+  "outputTokens"  INTEGER NOT NULL DEFAULT 0,
+  "estimatedCost" DECIMAL(12, 6) NOT NULL DEFAULT 0,
+  "createdAt"     TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS "AIUsage_userId_createdAt_idx" ON "AIUsage"("userId", "createdAt");
+CREATE INDEX IF NOT EXISTS "AIUsage_fileId_idx" ON "AIUsage"("fileId");
+
+CREATE TABLE IF NOT EXISTS "PlanUsage" (
+  "id"                      TEXT PRIMARY KEY,
+  "userId"                  TEXT UNIQUE NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+  "plan"                    TEXT NOT NULL,
+  "filesUsed"               INTEGER NOT NULL DEFAULT 0,
+  "summariesUsed"           INTEGER NOT NULL DEFAULT 0,
+  "chatQuestionsUsed"       INTEGER NOT NULL DEFAULT 0,
+  "inputTokensUsed"         INTEGER NOT NULL DEFAULT 0,
+  "outputTokensUsed"        INTEGER NOT NULL DEFAULT 0,
+  "estimatedCostMonthCents" INTEGER NOT NULL DEFAULT 0,
+  "resetDate"               TIMESTAMP NOT NULL
+);

@@ -3,19 +3,19 @@ import Link from "next/link";
 const FAQ = [
   {
     q: "Is MyPDFKitty free?",
-    a: "Yes. The Free plan includes 5 files per day up to 25 MB each, plus the most-used PDF tools (compress, merge, split, rotate, delete pages, sign) and 3 AI summaries per month. No credit card required.",
+    a: "Yes. The Free plan includes 5 files per day up to 25 MB each, plus the most-used PDF tools (compress, merge, split, rotate, delete pages, sign), 1 AI summary per month, and 3 PDF chat questions per month. No credit card required.",
   },
   {
     q: "Why is MyPDFKitty cheaper than other PDF tools?",
-    a: "We're built lean: the editor and most converters run in your browser, our AI runs efficiently against text-only extraction, and we don't fund a giant sales team. That lets us charge $2.99/mo where similar paid tools charge $5–$25/mo.",
+    a: "We're built lean and we meter AI carefully. The editor and most converters run in your browser, AI calls use retrieval (we send only the relevant chunks of a PDF, not the whole thing) and we cache summaries so the same PDF isn't billed twice. That lets us charge $2.99/mo where similar paid tools charge $5–$25/mo.",
   },
   {
     q: "What is included in Kitty Plus?",
-    a: "Kitty Plus ($2.99/mo or $19/year) includes 200 files per month up to 100 MB each, no watermarks, AI PDF summaries, Chat with PDF, saved file history, faster processing, and email support.",
+    a: "Kitty Plus ($2.99/mo or $24/year) includes 200 files per month up to 100 MB each, 25 AI summaries and 100 PDF chat questions per month with up to 75,000 tokens per document, no watermarks, saved file history, faster processing, and email support.",
   },
   {
     q: "Do free users get AI summaries?",
-    a: "Yes — Free users get 3 AI summaries per month on PDFs up to ~6 pages of text. Chat with PDF is included starting at Kitty Plus.",
+    a: "Yes — Free users get 1 AI summary per month and 3 PDF chat questions per month on shorter PDFs. AI usage is metered to keep the product affordable; for more, upgrade to Kitty Plus or buy a credit pack.",
   },
   {
     q: "Can I cancel anytime?",
@@ -23,15 +23,15 @@ const FAQ = [
   },
   {
     q: "Is Business priced per user?",
-    a: "Business is $9.99/month flat (or $79/year) and includes 3 team seats. Additional seats are $3/month per seat — significantly cheaper than competitors that charge $20+ per user.",
+    a: "Business is $12.99/month flat (or $99/year) and includes 3 team seats with shared AI quotas. Additional seats are $3/month per seat — significantly cheaper than competitors that charge $20+ per user.",
   },
   {
     q: "Do you add watermarks?",
-    a: "We add a small watermark only on AI summaries for the Free plan. Compress, merge, split, sign, edit, and convert outputs are watermark-free even on Free. Paid plans remove the AI watermark too.",
+    a: "We add a small watermark only on AI summaries for the Free plan. Compress, merge, split, sign, edit, and convert outputs are watermark-free even on Free. Paid plans remove the AI watermark entirely.",
   },
   {
     q: "What happens if I hit my monthly file limit?",
-    a: "We'll show a clear notice and suggest upgrading. You can upgrade mid-month and the new limit applies immediately — we prorate the bill.",
+    a: "We'll show a clear notice and suggest upgrading. You can upgrade mid-month and the new limit applies immediately — we prorate the bill. For chat questions specifically, you can also buy a one-time AI credit pack from $5.",
   },
 ];
 
@@ -64,7 +64,6 @@ export function PricingFAQ() {
 }
 
 export function PricingFaqLd() {
-  // Returned to the page as JSON-LD for rich snippets.
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",

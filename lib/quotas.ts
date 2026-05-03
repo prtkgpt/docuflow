@@ -47,54 +47,50 @@ export async function getUserQuota(userId: string | null): Promise<Quota> {
   };
 }
 
-// Anonymous (no userId) gets the same free limits but we can't track usage
-// across sessions. We rely on the per-plan upload size cap to prevent abuse.
 export const FREE_DEFAULT_BYTES = PLANS[0].maxUploadMb * 1024 * 1024;
 
 // ---------------------------------------------------------------------------
-// AI tool limits (summarize + chat)
+// AI tool limits — separate counters for summary and chat, plus per-call
+// input/output token caps. Counters reset at UTC start of month.
 // ---------------------------------------------------------------------------
 
-export type AiLimits = {
-  // Max characters of extracted PDF text we'll send to the model in one call.
-  maxChars: number;
-  // Max calls per UTC month, per user, per request type. 0 = not allowed.
-  perMonth: number;
+export type AiPlanLimits = {
+  perMonth: number;            // calls / month
+  maxInputTokens: number;      // cap on text we send to the model in a call
+  maxOutputTokens: number;     // cap on the model's response (max_tokens)
 };
 
-export function getAiLimits(plan: PlanId, kind: "summarize" | "chat"): AiLimits {
-  if (plan === "business") {
-    return { maxChars: 1_000_000, perMonth: kind === "chat" ? 100_000 : 5_000 };
-  }
-  if (plan === "pro") {
-    return { maxChars: 500_000, perMonth: kind === "chat" ? 5_000 : 1_000 };
-  }
-  if (plan === "plus") {
-    return { maxChars: 100_000, perMonth: kind === "chat" ? 1_000 : 200 };
-  }
-  // Free: 3 summaries / month on shorter PDFs. No chat (Plus and up).
+export function getAiLimits(plan: PlanId, kind: "summarize" | "chat"): AiPlanLimits {
+  const p = getPlan(plan);
+  const perMonth = kind === "summarize" ? p.ai.summariesPerMonth : p.ai.chatPerMonth;
   return {
-    maxChars: kind === "summarize" ? 8_000 : 0,
-    perMonth: kind === "summarize" ? 3 : 0,
+    perMonth,
+    maxInputTokens: p.ai.maxInputTokensPerDoc,
+    maxOutputTokens: p.ai.maxOutputTokensPerAnswer,
   };
 }
 
 export type AiCheckResult =
-  | { ok: true; used: number; limit: number }
+  | { ok: true; used: number; limit: number; maxInputTokens: number; maxOutputTokens: number; usedCredits?: number }
   | {
       ok: false;
-      code: "AI_TEXT_TOO_LONG" | "AI_MONTHLY_LIMIT" | "PLAN_REQUIRED";
+      code: "AI_DISABLED" | "AI_MONTHLY_LIMIT" | "PLAN_REQUIRED";
       message: string;
       plan: PlanId;
       used?: number;
       limit?: number;
-      maxChars?: number;
     };
 
+// Check whether a user can spend a chat-question or summary right now.
+// Order of checks:
+//   1. Plan disables this AI feature entirely (perMonth = 0) → AI_DISABLED.
+//   2. Plan budget exhausted AND no credit pack questions left → MONTHLY_LIMIT.
+// Pre-purchased AI credit pack questions roll over and are decremented after
+// the plan budget; they're stored on User.chatQuestionsCredits (created by
+// schema migration in this commit).
 export async function checkAiLimit(
   userId: string,
   kind: "summarize" | "chat",
-  textLength: number,
 ): Promise<AiCheckResult> {
   const quota = await getUserQuota(userId);
   const limits = getAiLimits(quota.plan, kind);
@@ -102,57 +98,83 @@ export async function checkAiLimit(
   if (limits.perMonth === 0) {
     return {
       ok: false,
-      code: "PLAN_REQUIRED",
+      code: "AI_DISABLED",
       plan: quota.plan,
       message:
         kind === "chat"
-          ? "Chat with PDF is included with Kitty Plus ($2.99/mo). Upgrade to start chatting with your PDFs."
+          ? "Chat with PDF requires Kitty Plus ($2.99/mo) or higher. Upgrade to start chatting with your PDFs."
           : "AI summaries require a paid plan.",
     };
   }
 
-  if (textLength > limits.maxChars) {
-    return {
-      ok: false,
-      code: "AI_TEXT_TOO_LONG",
-      plan: quota.plan,
-      maxChars: limits.maxChars,
-      message:
-        quota.plan === "free"
-          ? `This PDF is too long for the Free plan's summarizer (max ${limits.maxChars.toLocaleString()} characters). Upgrade to Kitty Plus ($2.99/mo) for files up to ~80 pages.`
-          : `This PDF is too long for your plan's ${kind === "summarize" ? "summarizer" : "chat"}. Upgrade to a higher tier for longer files.`,
-    };
-  }
-
-  // Monthly counter — count entries in AIRequest table since UTC start of month.
   const since = periodStart("month");
   const used = await prisma.aIRequest.count({
     where: { userId, requestType: kind, createdAt: { gte: since } },
   });
 
-  if (used >= limits.perMonth) {
+  if (used < limits.perMonth) {
     return {
-      ok: false,
-      code: "AI_MONTHLY_LIMIT",
-      plan: quota.plan,
+      ok: true,
       used,
       limit: limits.perMonth,
-      message:
-        quota.plan === "free"
-          ? `You've used your ${limits.perMonth} free ${kind === "summarize" ? "summaries" : "questions"} this month. Upgrade to Kitty Plus for ${kind === "summarize" ? "200 summaries" : "1,000 questions"} every month — only $2.99.`
-          : `You've reached this month's ${kind === "summarize" ? "summary" : "chat"} limit on your plan. Upgrade for higher limits.`,
+      maxInputTokens: limits.maxInputTokens,
+      maxOutputTokens: limits.maxOutputTokens,
     };
   }
 
-  return { ok: true, used, limit: limits.perMonth };
+  // Plan budget hit. For chat questions, allow purchased credits to cover
+  // the call. Summaries are not credit-pack-backed in v1.
+  if (kind === "chat") {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { chatQuestionsCredits: true },
+    });
+    if (user && user.chatQuestionsCredits > 0) {
+      return {
+        ok: true,
+        used,
+        limit: limits.perMonth,
+        maxInputTokens: limits.maxInputTokens,
+        maxOutputTokens: limits.maxOutputTokens,
+        usedCredits: user.chatQuestionsCredits,
+      };
+    }
+  }
+
+  return {
+    ok: false,
+    code: "AI_MONTHLY_LIMIT",
+    plan: quota.plan,
+    used,
+    limit: limits.perMonth,
+    message:
+      quota.plan === "free"
+        ? `You've used your ${limits.perMonth} free ${kind === "summarize" ? "summary" : "chat questions"} for this month. Upgrade to Kitty Plus ($2.99/mo) for ${kind === "summarize" ? "25 summaries" : "100 questions"} per month — or add an AI credit pack from $5.`
+        : `You've reached this month's ${kind === "summarize" ? "summary" : "chat"} limit on your plan. ${kind === "chat" ? "Add an AI credit pack from $5 or upgrade." : "Upgrade for more summaries."}`,
+  };
 }
 
-export async function getAiUsageToday(userId: string, kind: "summarize" | "chat") {
+// UI helper — current month usage + plan caps + reset date for the
+// /api/ai-usage endpoint.
+export async function getAiUsageThisMonth(userId: string) {
   const since = periodStart("month");
-  const used = await prisma.aIRequest.count({
-    where: { userId, requestType: kind, createdAt: { gte: since } },
-  });
-  const quota = await getUserQuota(userId);
-  const limits = getAiLimits(quota.plan, kind);
-  return { plan: quota.plan, used, limit: limits.perMonth, maxChars: limits.maxChars };
+  const [summariesUsed, chatUsed, user, quota] = await Promise.all([
+    prisma.aIRequest.count({ where: { userId, requestType: "summarize", createdAt: { gte: since } } }),
+    prisma.aIRequest.count({ where: { userId, requestType: "chat", createdAt: { gte: since } } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { chatQuestionsCredits: true } }),
+    getUserQuota(userId),
+  ]);
+  const plan = getPlan(quota.plan);
+  // First of next month UTC
+  const reset = new Date(since);
+  reset.setUTCMonth(reset.getUTCMonth() + 1);
+  return {
+    plan: quota.plan,
+    summariesUsed,
+    summariesLimit: plan.ai.summariesPerMonth,
+    chatUsed,
+    chatLimit: plan.ai.chatPerMonth,
+    chatCredits: user?.chatQuestionsCredits ?? 0,
+    resetDate: reset.toISOString(),
+  };
 }
