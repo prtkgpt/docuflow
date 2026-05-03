@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const cs = event.data.object as Stripe.Checkout.Session;
     const email = cs.customer_email;
-    const plan = (cs.metadata?.plan as "pro" | "business" | undefined) ?? "pro";
+    const plan = (cs.metadata?.plan as "plus" | "pro" | "business" | undefined) ?? "plus";
     if (email) {
       const user = await prisma.user.findUnique({ where: { email } });
       if (user) {

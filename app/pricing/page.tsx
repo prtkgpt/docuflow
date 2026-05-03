@@ -1,25 +1,26 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { PricingCard } from "@/components/PricingCard";
-import { PLANS } from "@/lib/plans";
+import { JsonLd } from "@/components/JsonLd";
+import { PricingClient } from "@/components/pricing/PricingClient";
+import { ComparisonSection } from "@/components/pricing/ComparisonSection";
+import { PricingFAQ, PricingFaqLd } from "@/components/pricing/PricingFAQ";
+import { buildMetadata, breadcrumbLd } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "MyPDFKitty Pricing – Affordable PDF Tools Starting at $2.99/month",
+  description:
+    "Start free with MyPDFKitty. Upgrade for AI PDF summaries, larger files, saved history, and team PDF tools starting at just $2.99/month.",
+  path: "/pricing",
+});
 
 export default function PricingPage() {
   return (
     <>
+      <JsonLd data={[breadcrumbLd([{ name: "Pricing", path: "/pricing" }]), PricingFaqLd()]} />
       <Header />
-      <main className="container py-16">
-        <div className="text-center max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold tracking-tight">Simple pricing for everyone</h1>
-          <p className="mt-3 text-slate-600">
-            Start free. Upgrade for AI summaries, larger files, and team workspaces.
-          </p>
-        </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {PLANS.map((p) => (
-            <PricingCard key={p.id} plan={p} />
-          ))}
-        </div>
-      </main>
+      <PricingClient />
+      <ComparisonSection />
+      <PricingFAQ />
       <Footer />
     </>
   );

@@ -57,11 +57,11 @@ export default async function AccountPage() {
           <Card>
             <CardHeader>
               <CardTitle className="inline-flex items-center gap-2">Plan: <span className="capitalize">{plan.name}</span></CardTitle>
-              <CardDescription>{quota.monthlyUsed} / {quota.monthlyFiles} files used this month</CardDescription>
+              <CardDescription>{quota.used} / {quota.filesLimit} files {quota.filesPeriod === "day" ? "today" : "this month"}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                <div className="h-full bg-brand-600" style={{ width: `${Math.min(100, Math.round((quota.monthlyUsed / Math.max(1, quota.monthlyFiles)) * 100))}%` }} />
+                <div className="h-full bg-brand-600" style={{ width: `${Math.min(100, Math.round((quota.used / Math.max(1, quota.filesLimit)) * 100))}%` }} />
               </div>
               <div className="flex flex-wrap gap-2">
                 {quota.plan !== "business" && (

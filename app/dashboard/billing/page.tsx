@@ -31,7 +31,10 @@ export default async function BillingPage() {
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-slate-700">
           <div className="grid gap-2 sm:grid-cols-2">
-            <Stat label="Files / month" value={`${quota.monthlyUsed} / ${plan.monthlyFiles}`} />
+            <Stat
+              label={quota.filesPeriod === "day" ? "Files today" : "Files this month"}
+              value={`${quota.used} / ${plan.filesLimit}`}
+            />
             <Stat label="Max upload" value={`${plan.maxUploadMb} MB`} />
           </div>
           <div className="pt-2 flex flex-wrap gap-2">

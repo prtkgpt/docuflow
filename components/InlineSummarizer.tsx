@@ -13,7 +13,7 @@ type Summary = {
   actions: string[];
 };
 
-type Usage = { signedIn: boolean; plan?: "free" | "pro" | "business"; used?: number; limit?: number; maxChars?: number };
+type Usage = { signedIn: boolean; plan?: "free" | "plus" | "pro" | "business"; used?: number; limit?: number; maxChars?: number };
 
 function Inner() {
   const params = useSearchParams();
@@ -139,7 +139,7 @@ function UsageBadge({ usage, kind }: { usage: Usage | null; kind: "summary" | "c
   const tone = remaining === 0 ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-600";
   return (
     <div className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
-      <span className="capitalize">{usage.plan}</span> plan · {usage.used} / {usage.limit} {kind === "summary" ? "summaries" : "questions"} today
+      <span className="capitalize">{(usage.plan === "plus" ? "Kitty Plus" : usage.plan === "pro" ? "Kitty Pro" : usage.plan)}</span> plan · {usage.used} / {usage.limit} {kind === "summary" ? "summaries" : "questions"} this month
       {remaining === 0 && (
         <Link href="/pricing" className="font-medium underline">Upgrade</Link>
       )}

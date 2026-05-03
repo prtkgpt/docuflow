@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { UploadDropzone } from "@/components/UploadDropzone";
 
 type Turn = { role: "user" | "assistant"; text: string; pages?: number[] };
-type Usage = { signedIn: boolean; plan?: "free" | "pro" | "business"; used?: number; limit?: number };
+type Usage = { signedIn: boolean; plan?: "free" | "plus" | "pro" | "business"; used?: number; limit?: number };
 
 function Inner() {
   const params = useSearchParams();
@@ -160,7 +160,7 @@ function UsageBadge({ usage }: { usage: Usage | null }) {
   const tone = remaining === 0 ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-600";
   return (
     <div className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${tone}`}>
-      <span className="capitalize">{usage.plan}</span> plan · {usage.used} / {usage.limit} questions today
+      <span className="capitalize">{(usage.plan === "plus" ? "Kitty Plus" : usage.plan === "pro" ? "Kitty Pro" : usage.plan)}</span> plan · {usage.used} / {usage.limit} questions this month
       {remaining === 0 && <Link href="/pricing" className="font-medium underline">Upgrade</Link>}
     </div>
   );

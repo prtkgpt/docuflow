@@ -33,12 +33,13 @@ function SignupInner() {
       if (res?.error) throw new Error(res.error);
       if (!res?.ok) throw new Error("Could not create your account.");
 
-      if (planAfter === "pro" || planAfter === "business") {
+      if (planAfter === "plus" || planAfter === "pro" || planAfter === "business") {
         // Continue to Stripe checkout for the chosen plan.
+        const interval = (params.get("interval") === "annual" ? "annual" : "monthly");
         const r = await fetch("/api/stripe/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan: planAfter }),
+          body: JSON.stringify({ plan: planAfter, interval }),
         });
         const data = await r.json();
         if (data.url) { window.location.href = data.url; return; }

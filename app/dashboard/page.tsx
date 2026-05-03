@@ -33,7 +33,8 @@ export default async function DashboardPage() {
   const stats = await getStats(userId);
   const quota = await getUserQuota(userId);
   const plan = getPlan(quota.plan);
-  const usagePct = Math.min(100, Math.round((quota.monthlyUsed / Math.max(1, quota.monthlyFiles)) * 100));
+  const usagePct = Math.min(100, Math.round((quota.used / Math.max(1, quota.filesLimit)) * 100));
+  const periodLabel = quota.filesPeriod === "day" ? "today" : "this month";
 
   return (
     <div className="space-y-6">
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="text-sm text-slate-600">
-              {quota.monthlyUsed} / {quota.monthlyFiles} files this month
+              {quota.used} / {quota.filesLimit} files {periodLabel}
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
               <div className="h-full bg-brand-600" style={{ width: `${usagePct}%` }} />
