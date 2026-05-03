@@ -7,51 +7,64 @@ import { SITE } from "@/lib/site";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Admin-only health check for the magic-link / email pipeline. Tells you
-// at a glance which env var is wrong without having to dig through
-// Vercel logs.
+// Health check for the magic-link / email pipeline.
 //
-//   GET  /api/debug/email                — config probe + Resend domain status
-//   POST /api/debug/email { to: "..." }  — sends a test magic-link email
+//   GET  /api/debug/email          — public; safe boolean checks only.
+//                                    No secret values are exposed; just
+//                                    "is X set" + Resend reachability.
+//   POST /api/debug/email { to }   — admin-only; sends a real test email.
 export async function GET() {
-  const auth = await requireAdmin();
-  if (!auth.ok) return NextResponse.json({ error: auth.reason }, { status: 401 });
-
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   const replyTo = process.env.EMAIL_REPLY_TO;
   const nextAuthUrl = process.env.NEXTAUTH_URL;
   const allowPasswordless = process.env.ALLOW_PASSWORDLESS_SIGNIN === "true";
 
-  const checks: { name: string; ok: boolean; detail: string }[] = [];
+  // Boolean checks: never echo back the actual secret values, just
+  // whether they're present and shaped right.
+  const checks: { name: string; ok: boolean; detail: string }[] = [
+    {
+      name: "RESEND_API_KEY",
+      ok: !!apiKey && apiKey.startsWith("re_"),
+      detail: apiKey
+        ? `set (length ${apiKey.length}, starts with "${apiKey.slice(0, 3)}…")`
+        : "MISSING — magic-link Email provider will not be registered",
+    },
+    {
+      name: "EMAIL_FROM",
+      ok: !!from && /<[^>]+@[^>]+>$/.test(from),
+      detail: from
+        ? from
+        : "MISSING — defaulting to MyPDFKitty <onboarding@resend.dev>",
+    },
+    {
+      name: "EMAIL_REPLY_TO",
+      ok: true,
+      detail: replyTo || `(default: ${SITE.email})`,
+    },
+    {
+      name: "NEXTAUTH_URL",
+      ok: nextAuthUrl === SITE.url || nextAuthUrl === `${SITE.url}/`,
+      detail: nextAuthUrl
+        ? `${nextAuthUrl}${nextAuthUrl !== SITE.url && nextAuthUrl !== `${SITE.url}/` ? ` ⚠ does not match expected ${SITE.url}` : ""}`
+        : `MISSING — magic-link URLs will be malformed`,
+    },
+    {
+      name: "ALLOW_PASSWORDLESS_SIGNIN",
+      ok: !allowPasswordless,
+      detail: allowPasswordless
+        ? "true (legacy fallback ENABLED — credentials provider will run)"
+        : "(off, magic-link first)",
+    },
+  ];
 
-  checks.push({
-    name: "RESEND_API_KEY",
-    ok: !!apiKey,
-    detail: apiKey ? `set (length ${apiKey.length})` : "missing — magic link will fall back to credentials",
-  });
-  checks.push({
-    name: "EMAIL_FROM",
-    ok: !!from,
-    detail: from || "missing — defaulting to MyPDFKitty <onboarding@resend.dev>",
-  });
-  checks.push({
-    name: "EMAIL_REPLY_TO",
-    ok: true,
-    detail: replyTo || `(default: ${SITE.email})`,
-  });
-  checks.push({
-    name: "NEXTAUTH_URL",
-    ok: nextAuthUrl === SITE.url || nextAuthUrl === `${SITE.url}/`,
-    detail: nextAuthUrl
-      ? nextAuthUrl + (nextAuthUrl !== SITE.url && nextAuthUrl !== `${SITE.url}/` ? ` ⚠ does not match SITE.url ${SITE.url}` : "")
-      : `missing — magic links will use the wrong base URL`,
-  });
-  checks.push({
-    name: "ALLOW_PASSWORDLESS_SIGNIN",
-    ok: !allowPasswordless,
-    detail: allowPasswordless ? "true (legacy fallback ENABLED — magic link may be skipped)" : "(off, magic-link first)",
-  });
+  // Inferred provider list — what /lib/auth.ts will actually register
+  // given the env vars above. This is the single most useful diagnostic
+  // because it tells us whether EmailProvider is loaded at all.
+  const providers: string[] = [];
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) providers.push("google");
+  if (apiKey) providers.push("email (magic link via Resend)");
+  if (allowPasswordless || !apiKey) providers.push("credentials (passwordless)");
 
   // Hit Resend's domain-list endpoint to confirm the API key works AND
   // tell us whether mypdfkitty.com is verified.
@@ -60,7 +73,7 @@ export async function GET() {
     try {
       const resend = new Resend(apiKey);
       const domains = await resend.domains.list();
-      const list = (domains.data as any)?.data ?? domains.data ?? [];
+      const list: any = (domains.data as any)?.data ?? domains.data ?? [];
       resendStatus = {
         reachable: true,
         domains: Array.isArray(list)
@@ -74,10 +87,13 @@ export async function GET() {
 
   return NextResponse.json({
     ok: checks.every((c) => c.ok),
+    deployedCommit: process.env.VERCEL_GIT_COMMIT_SHA || null,
+    providers,
     checks,
     resend: resendStatus,
-    note:
-      "If RESEND_API_KEY is set but no email arrives, POST { to: 'you@example.com' } to this endpoint to send a test message and see the exact Resend error.",
+    next: providers.includes("email (magic link via Resend)")
+      ? "Magic-link provider is loaded. If no Resend activity, run a POST { to: 'you@example.com' } against this endpoint (admin only) to send a test."
+      : "Magic-link provider is NOT loaded. Set RESEND_API_KEY in Vercel Production env vars and redeploy.",
   });
 }
 
@@ -124,7 +140,7 @@ export async function POST(req: NextRequest) {
       id: res.data?.id,
       fromAddr,
       to,
-      hint: "Email sent via Resend. Check the inbox; if it doesn't arrive in 1-2 minutes, look in spam or check Resend → Logs in the dashboard.",
+      hint: "Email sent via Resend. Check inbox; if it doesn't arrive, look in spam or check Resend → Logs.",
     });
   } catch (e: any) {
     return NextResponse.json(

@@ -89,7 +89,15 @@ export const authOptions: NextAuthOptions = {
   // read it without a DB hit on every request.
   session: { strategy: "jwt" },
   pages: { signIn: "/login", verifyRequest: "/login?check=email" },
-  providers: buildProviders(),
+  providers: (() => {
+    const list = buildProviders();
+    // One-line on cold start so Vercel function logs show what's actually
+    // wired up. If you set RESEND_API_KEY but don't see "email" here,
+    // either the env var is in the wrong scope (Preview vs Production)
+    // or the deploy hasn't picked it up yet.
+    console.log("[auth] providers loaded:", list.map((p: any) => p.id || p.name));
+    return list;
+  })(),
   events: {
     async createUser({ user }) {
       // Ensure every new user has a Subscription row + send welcome email.
