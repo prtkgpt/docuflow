@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { readByUrlOrName } from "@/lib/storage";
-import { toUint8 } from "@/lib/bytes";
 
 export const runtime = "nodejs";
 
@@ -24,7 +23,11 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
     return NextResponse.redirect(file.url, 302);
   }
   const buf = await readByUrlOrName(file.url);
-  return new NextResponse(toUint8(buf), {
+  // Copy into a fresh ArrayBuffer so TS's strict BodyInit accepts it
+  // (Buffer<ArrayBufferLike> and Uint8Array<ArrayBufferLike> are both rejected).
+  const ab: ArrayBuffer = new ArrayBuffer(buf.byteLength);
+  new Uint8Array(ab).set(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength));
+  return new Response(ab, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="${file.originalName}"`,
