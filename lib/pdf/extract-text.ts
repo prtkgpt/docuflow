@@ -1,34 +1,30 @@
-import { PDFDocument } from "pdf-lib";
+import { extractText, getDocumentProxy } from "unpdf";
 import { toUint8 } from "@/lib/bytes";
 
-// Lightweight server-side text extractor. We use pdfjs-dist's legacy build
-// which works in Node without a DOM. If extraction fails (image-only PDFs)
-// the caller should fall back to OCR or surface an error.
+// Server-side PDF text extraction. We use `unpdf` instead of pdfjs-dist
+// directly because pdfjs-dist's legacy build dynamically imports its
+// worker (pdf.worker.mjs), which Vercel's NFT can't trace into the
+// serverless function bundle. unpdf wraps pdfjs and avoids the worker
+// dependency entirely — pure Node, no extra files at runtime.
 export async function extractPdfText(buffer: Buffer | Uint8Array): Promise<{
   text: string;
   pageTexts: string[];
   pageCount: number;
 }> {
   const data = toUint8(buffer);
-  // Quickly read page count via pdf-lib (cheap and reliable).
-  const meta = await PDFDocument.load(data, { ignoreEncryption: true });
-  const pageCount = meta.getPageCount();
-
-  let pdfjs: any;
   try {
-    pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const pdf = await getDocumentProxy(data);
+    const { text, totalPages } = await extractText(pdf, { mergePages: false });
+    const pageTexts = Array.isArray(text) ? text : text ? [text] : [];
+    return {
+      text: pageTexts.join("\n\n"),
+      pageTexts,
+      pageCount: totalPages,
+    };
   } catch {
-    return { text: "", pageTexts: Array(pageCount).fill(""), pageCount };
+    // Scanned/encrypted PDFs raise here; the caller surfaces a clear
+    // message ("Could not extract text — try OCR first") rather than
+    // crashing the whole request.
+    return { text: "", pageTexts: [], pageCount: 0 };
   }
-  const loadingTask = pdfjs.getDocument({ data, useSystemFonts: true, isEvalSupported: false });
-  const pdf = await loadingTask.promise;
-
-  const pageTexts: string[] = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const text = content.items.map((it: any) => ("str" in it ? it.str : "")).join(" ");
-    pageTexts.push(text);
-  }
-  return { text: pageTexts.join("\n\n"), pageTexts, pageCount: pdf.numPages };
 }
