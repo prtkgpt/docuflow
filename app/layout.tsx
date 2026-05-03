@@ -4,6 +4,7 @@ import { SITE } from "@/lib/site";
 import { JsonLd } from "@/components/JsonLd";
 import { organizationLd, websiteLd } from "@/lib/seo";
 import { Analytics } from "@/components/Analytics";
+import { AppSessionProvider } from "@/components/SessionProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -57,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <JsonLd data={[organizationLd(), websiteLd()]} />
         <Analytics />
-        {children}
+        <AppSessionProvider>{children}</AppSessionProvider>
       </body>
     </html>
   );

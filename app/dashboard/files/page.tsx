@@ -1,11 +1,15 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { FileTable, type FileRow } from "@/components/FileTable";
 
 export const dynamic = "force-dynamic";
 
-async function getFiles(): Promise<FileRow[]> {
+async function getFiles(userId: string): Promise<FileRow[]> {
   try {
     const files = await prisma.file.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: 100,
       include: { usage: { take: 1, orderBy: { createdAt: "desc" } } },
@@ -25,7 +29,10 @@ async function getFiles(): Promise<FileRow[]> {
 }
 
 export default async function FilesPage() {
-  const files = await getFiles();
+  const session = await getServerSession(authOptions).catch(() => null);
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) redirect("/login?callbackUrl=/dashboard/files");
+  const files = await getFiles(userId);
   return (
     <div className="space-y-4">
       <div>

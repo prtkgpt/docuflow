@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Type as TypeIcon,
@@ -119,6 +120,10 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   const [signPrompt, setSignPrompt] = useState<{ x: number; y: number } | null>(null);
   const [linkPrompt, setLinkPrompt] = useState<{ x: number; y: number } | null>(null);
   const [showPages, setShowPages] = useState(true);
+  // Hide pages sidebar by default on small screens.
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) setShowPages(false);
+  }, []);
   const [showManagePages, setShowManagePages] = useState(false);
   const [pageOps, setPageOps] = useState<PageOpsState>({ order: [], rotations: {} });
   const [session, setSession] = useState<ClientSession>(null);
@@ -474,18 +479,18 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   return (
     <div className="flex h-screen flex-col bg-slate-100 select-none">
       {/* Top bar */}
-      <div className="flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4">
-        <span className="text-sm font-semibold text-brand-700">MyPDFKitty</span>
-        <span className="text-slate-300">/</span>
-        <span className="truncate text-sm text-slate-700">{fileName}</span>
+      <div className="flex h-14 items-center gap-2 border-b border-slate-200 bg-white px-3 md:px-4">
+        <Link href="/" className="text-sm font-semibold text-brand-700 shrink-0">MyPDFKitty</Link>
+        <span className="text-slate-300 hidden sm:inline">/</span>
+        <span className="truncate text-sm text-slate-700 hidden sm:inline">{fileName}</span>
         <div className="flex-1" />
         <Button variant="ghost" size="icon" aria-label="Search" title="Search" onClick={() => setShowSearch(true)}><Search className="h-4 w-4" /></Button>
-        <Button variant="ghost" size="icon" aria-label="Print" title="Print" onClick={() => window.print()}><Printer className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" aria-label="Print" title="Print" onClick={() => window.print()} className="hidden sm:inline-flex"><Printer className="h-4 w-4" /></Button>
         <Button variant="ghost" size="icon" aria-label="Download" title="Download" onClick={save}><Download className="h-4 w-4" /></Button>
-        <Button variant="outline" onClick={share}><Share2 className="h-4 w-4" /> Share</Button>
+        <Button variant="outline" onClick={share} className="hidden sm:inline-flex"><Share2 className="h-4 w-4" /> Share</Button>
         <Button onClick={save} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-          {saving ? "Saving…" : "Done"}
+          <span className="hidden sm:inline">{saving ? "Saving…" : "Done"}</span>
         </Button>
       </div>
 
@@ -655,21 +660,34 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
 
       <div className="flex flex-1 min-h-0">
         {showPages && (
-          <aside className="w-32 border-r border-slate-200 bg-white overflow-y-auto p-2 space-y-2">
-            {thumbnails.map((src, i) => (
+          <>
+            {/* Mobile drawer overlay */}
+            <div
+              className="md:hidden fixed inset-0 bg-black/40 z-30"
+              onClick={() => setShowPages(false)}
+            />
+            <aside className="fixed md:static z-40 md:z-auto top-0 left-0 h-full w-40 md:w-32 border-r border-slate-200 bg-white overflow-y-auto p-2 space-y-2">
               <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={cn(
-                  "block w-full rounded-lg border-2 overflow-hidden transition-colors",
-                  page === i + 1 ? "border-brand-500" : "border-slate-200 hover:border-slate-400",
-                )}
+                className="md:hidden w-full text-xs text-slate-500 hover:bg-slate-100 rounded-lg p-2 text-left"
+                onClick={() => setShowPages(false)}
               >
-                <img src={src} alt={`Page ${i + 1}`} className="block w-full" />
-                <div className="text-[11px] text-slate-500 py-1">Page {i + 1}</div>
+                ← Close pages
               </button>
-            ))}
-          </aside>
+              {thumbnails.map((src, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setPage(i + 1); if (window.innerWidth < 768) setShowPages(false); }}
+                  className={cn(
+                    "block w-full rounded-lg border-2 overflow-hidden transition-colors",
+                    page === i + 1 ? "border-brand-500" : "border-slate-200 hover:border-slate-400",
+                  )}
+                >
+                  <img src={src} alt={`Page ${i + 1}`} className="block w-full" />
+                  <div className="text-[11px] text-slate-500 py-1">Page {i + 1}</div>
+                </button>
+              ))}
+            </aside>
+          </>
         )}
 
         <main className="flex-1 overflow-auto">

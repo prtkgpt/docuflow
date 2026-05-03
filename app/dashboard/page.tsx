@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -28,6 +29,7 @@ async function getStats(userId: string | null) {
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions).catch(() => null);
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+  if (!userId) redirect("/login?callbackUrl=/dashboard");
   const stats = await getStats(userId);
   const quota = await getUserQuota(userId);
   const plan = getPlan(quota.plan);

@@ -1,77 +1,74 @@
 "use client";
-import { useState } from "react";
+import Link from "next/link";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SITE } from "@/lib/site";
 
-export default function LoginPage() {
+function LoginInner() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const callbackUrl = params.get("callbackUrl") || "/dashboard";
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
-    setError(null);
+    setBusy(true); setError(null);
     try {
-      // NextAuth credentials provider — sign in via REST endpoint to avoid client SDK.
-      const res = await fetch("/api/auth/callback/credentials", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ email, name, redirect: "false", csrfToken: await getCsrf(), json: "true" }).toString(),
-      });
-      if (res.ok) window.location.href = "/dashboard";
-      else setError("Could not sign in. Please try again.");
+      const res = await signIn("credentials", { email, redirect: false, callbackUrl });
+      if (res?.error) throw new Error(res.error);
+      if (res?.ok) router.push(callbackUrl);
     } catch (e: any) {
-      setError(e.message || "Sign in failed");
+      setError(e.message || "Could not sign in");
     } finally {
       setBusy(false);
     }
   }
 
   return (
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Welcome back</CardTitle>
+        <CardDescription>Sign in to {SITE.name} with your email.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form className="space-y-4" onSubmit={submit}>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <Button className="w-full" disabled={busy}>{busy ? "Signing in…" : "Continue"}</Button>
+          <p className="text-xs text-slate-500 text-center">
+            New here?{" "}
+            <Link href={`/signup${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="text-brand-700 underline">
+              Create a free account
+            </Link>
+          </p>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <>
       <Header />
       <main className="container py-16 grid place-items-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Sign in to MyPDFKitty</CardTitle>
-            <CardDescription>Use your email to access your workspace.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={submit}>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div>
-                <Label htmlFor="name">Name (optional)</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <Button className="w-full" disabled={busy}>{busy ? "Signing in…" : "Continue"}</Button>
-              <p className="text-xs text-slate-500 text-center">
-                We'll create an account if one doesn't exist. No password required for the MVP.
-              </p>
-            </form>
-          </CardContent>
-        </Card>
+        <Suspense fallback={<div className="h-10 w-40 animate-pulse rounded-xl bg-slate-100" />}>
+          <LoginInner />
+        </Suspense>
       </main>
       <Footer />
     </>
   );
-}
-
-async function getCsrf(): Promise<string> {
-  try {
-    const r = await fetch("/api/auth/csrf");
-    const d = await r.json();
-    return d.csrfToken || "";
-  } catch {
-    return "";
-  }
 }

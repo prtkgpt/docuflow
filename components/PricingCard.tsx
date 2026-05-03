@@ -1,23 +1,40 @@
 "use client";
-import { Check, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Check, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Plan } from "@/lib/plans";
 
 export function PricingCard({ plan }: { plan: Plan }) {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [busy, setBusy] = useState(false);
+
   async function checkout() {
     if (plan.id === "free") {
-      window.location.href = "/login";
+      router.push(session?.user ? "/dashboard" : "/signup");
       return;
     }
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: plan.id }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-    else alert(data.error || "Checkout unavailable");
+    if (status === "loading") return;
+    if (!session?.user) {
+      // Need an account before checkout. Carry the chosen plan through signup.
+      router.push(`/signup?plan=${plan.id}`);
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: plan.id }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert(data.error || "Checkout unavailable");
+    } finally { setBusy(false); }
   }
+
   return (
     <div className={`relative flex h-full flex-col rounded-2xl border ${plan.highlight ? "border-brand-400 shadow-soft" : "border-slate-200"} bg-white p-6`}>
       {plan.highlight && (
@@ -39,7 +56,8 @@ export function PricingCard({ plan }: { plan: Plan }) {
           </li>
         ))}
       </ul>
-      <Button onClick={checkout} className="mt-6 w-full" variant={plan.highlight ? "default" : "outline"}>
+      <Button onClick={checkout} disabled={busy} className="mt-6 w-full" variant={plan.highlight ? "default" : "outline"}>
+        {busy && <Loader2 className="h-4 w-4 animate-spin" />}
         {plan.cta}
       </Button>
     </div>
