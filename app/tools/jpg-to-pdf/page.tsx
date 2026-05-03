@@ -3,9 +3,9 @@ import { MergeRunner } from "@/components/tools/MergeRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "JPG to PDF Converter Online | MyPDFKitty",
+  title: "Convert JPG to PDF Online Free | MyPDFKitty",
   description:
-    "Convert JPG images into a PDF online. Combine photos, scans, and images into one PDF with MyPDFKitty.",
+    "Convert JPG images to PDF online for free. Combine photos, scans, and images into a clean PDF.",
   path: "/tools/jpg-to-pdf",
 });
 
@@ -13,8 +13,8 @@ export default function Page() {
   return (
     <ToolPage
       slug="jpg-to-pdf"
-      h1="JPG to PDF Converter"
-      intro="Combine one or more JPG or PNG images into a single PDF. Great for receipts, photos of forms, and quick scans from your phone."
+      h1="Convert JPG to PDF Online Free"
+      intro="Combine one or more JPG or PNG images into a single PDF for free. Great for receipts, photos of forms, and quick scans from your phone."
       runner={
         <MergeRunner
           endpoint="/api/tools/images-to-pdf"
@@ -24,8 +24,8 @@ export default function Page() {
         />
       }
       multiple
-      metaTitle="JPG to PDF Converter Online | MyPDFKitty"
-      metaDescription="Convert JPG images into a PDF online. Combine photos, scans, and images into one PDF with MyPDFKitty."
+      metaTitle="Convert JPG to PDF Online Free | MyPDFKitty"
+      metaDescription="Convert JPG images to PDF online for free. Combine photos, scans, and images into a clean PDF."
       steps={[
         { name: "Upload your images", text: "Drop one or more JPGs or PNGs onto the upload box." },
         { name: "Order the pages", text: "Drag the rows to reorder before converting." },

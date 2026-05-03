@@ -2,9 +2,9 @@ import { ToolPage } from "@/components/ToolPageLayout";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "Edit PDF Online – Add Text, Images & Notes | MyPDFKitty",
+  title: "Edit PDF Online Free – Add Text, Images & Notes | MyPDFKitty",
   description:
-    "Edit PDFs online with MyPDFKitty. Add text, signatures, images, notes, highlights, and page changes directly in your browser.",
+    "Edit PDFs online for free. Add text, signatures, images, notes, highlights, and page changes in your browser.",
   path: "/tools/edit-pdf",
 });
 
@@ -12,11 +12,11 @@ export default function Page() {
   return (
     <ToolPage
       slug="edit-pdf"
-      h1="Edit PDF Online"
-      intro="Edit PDFs in your browser. Add text, signatures, images, highlights and notes; reorder, rotate, or delete pages — and save the result as a new PDF."
+      h1="Edit PDF Online Free"
+      intro="Edit PDFs in your browser for free. Add text, signatures, images, highlights and notes; reorder, rotate, or delete pages — and save the result as a new PDF."
       uploadRedirect="/editor"
-      metaTitle="Edit PDF Online – Add Text, Images & Notes | MyPDFKitty"
-      metaDescription="Edit PDFs online with MyPDFKitty. Add text, signatures, images, notes, highlights, and page changes directly in your browser."
+      metaTitle="Edit PDF Online Free – Add Text, Images & Notes | MyPDFKitty"
+      metaDescription="Edit PDFs online for free. Add text, signatures, images, notes, highlights, and page changes in your browser."
       steps={[
         { name: "Upload your PDF", text: "Drop a PDF onto the upload box to open it in the editor." },
         { name: "Add edits", text: "Use the toolbar to add text, highlights, signatures, images, notes, links, and page changes." },

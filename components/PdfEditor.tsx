@@ -40,7 +40,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { EmailGateModal } from "@/components/EmailGateModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ManagePagesModal, type PageOpsState } from "@/components/ManagePagesModal";
 import { getClientSession, type ClientSession } from "@/lib/session-client";
@@ -127,7 +126,6 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   const [showManagePages, setShowManagePages] = useState(false);
   const [pageOps, setPageOps] = useState<PageOpsState>({ order: [], rotations: {} });
   const [session, setSession] = useState<ClientSession>(null);
-  const [emailGateOpen, setEmailGateOpen] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const [layout, setLayout] = useState<"single" | "fit" | "two-up">("single");
   const [showSearch, setShowSearch] = useState(false);
@@ -405,14 +403,10 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   }
 
   async function save() {
-    // Free flow: require an email before download. We re-check the session
-    // each time in case the user signed in another tab.
-    const fresh = session ?? (await getClientSession());
-    setSession(fresh);
-    if (!fresh?.user) {
-      setEmailGateOpen(true);
-      return;
-    }
+    // No email gate before download — the brief is explicit: don't put a
+    // paywall before download for small files. Free anonymous users can
+    // download. We still attach the result to a user account if the
+    // session exists, so it shows up under My files.
     await runSave();
   }
 
@@ -811,17 +805,6 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
           state={pageOps.order.length > 0 ? pageOps : { order: thumbnails.map((_, i) => i + 1), rotations: {} }}
           onClose={() => setShowManagePages(false)}
           onApply={(next) => { setPageOps(next); setShowManagePages(false); }}
-        />
-      )}
-
-      {emailGateOpen && (
-        <EmailGateModal
-          onClose={() => setEmailGateOpen(false)}
-          onComplete={async () => {
-            setEmailGateOpen(false);
-            setSession(await getClientSession());
-            await runSave();
-          }}
         />
       )}
 

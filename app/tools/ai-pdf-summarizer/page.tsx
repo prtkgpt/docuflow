@@ -3,9 +3,9 @@ import { InlineSummarizer } from "@/components/InlineSummarizer";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "AI PDF Summarizer – Summarize PDFs Online | MyPDFKitty",
+  title: "AI PDF Summarizer Free – Summarize PDFs Online | MyPDFKitty",
   description:
-    "Summarize long PDFs with AI. Upload a PDF and get a short summary, key points, takeaways, and action items with MyPDFKitty.",
+    "Summarize PDFs online with AI. Upload a PDF and get a short summary, key points, takeaways, and action items.",
   path: "/tools/ai-pdf-summarizer",
 });
 
@@ -13,11 +13,11 @@ export default function Page() {
   return (
     <ToolPage
       slug="ai-pdf-summarizer"
-      h1="AI PDF Summarizer"
-      intro="Get a short summary, highlights, key takeaways, and action items from any PDF in seconds. Upload a document, click summarize, and skim the result instead of reading 30 pages."
+      h1="AI PDF Summarizer Free"
+      intro="Get a short summary, highlights, key takeaways, and action items from any PDF in seconds. Free users get 3 summaries per day on PDFs up to ~6 pages of text — upgrade for larger files and higher limits."
       runner={<InlineSummarizer />}
-      metaTitle="AI PDF Summarizer – Summarize PDFs Online | MyPDFKitty"
-      metaDescription="Summarize long PDFs with AI. Upload a PDF and get a short summary, key points, takeaways, and action items with MyPDFKitty."
+      metaTitle="AI PDF Summarizer Free – Summarize PDFs Online | MyPDFKitty"
+      metaDescription="Summarize PDFs online with AI. Upload a PDF and get a short summary, key points, takeaways, and action items."
       steps={[
         { name: "Upload your PDF", text: "Drop a report, paper, ebook, or contract." },
         { name: "Generate the summary", text: "MyPDFKitty extracts the text and asks an AI model for a concise summary." },

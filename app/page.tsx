@@ -25,22 +25,23 @@ export const metadata = buildMetadata({
   path: "/",
 });
 
-const FEATURED_SLUGS = [
+const FREE_PDF_SLUGS = [
+  "sign-pdf",
+  "pdf-to-word",
   "compress-pdf",
   "merge-pdf",
   "split-pdf",
   "edit-pdf",
-  "sign-pdf",
-  "pdf-to-word",
   "jpg-to-pdf",
   "ai-summarizer",
-  "chat-pdf",
 ];
 
+const IMAGE_SLUGS = ["jpg-to-png", "png-to-jpg", "jpg-to-pdf", "png-to-pdf", "pdf-to-jpg"];
 const AI_SLUGS = ["ai-summarizer", "chat-pdf", "key-points", "ocr-pdf"];
 
 export default function HomePage() {
-  const featured = FEATURED_SLUGS.map(findTool).filter(Boolean) as NonNullable<ReturnType<typeof findTool>>[];
+  const freePdf = FREE_PDF_SLUGS.map(findTool).filter(Boolean) as NonNullable<ReturnType<typeof findTool>>[];
+  const imageTools = IMAGE_SLUGS.map(findTool).filter(Boolean) as NonNullable<ReturnType<typeof findTool>>[];
   const aiTools = AI_SLUGS.map(findTool).filter(Boolean) as NonNullable<ReturnType<typeof findTool>>[];
   const blogPreview = getAllPosts().slice(0, 3);
 
@@ -81,18 +82,40 @@ export default function HomePage() {
       </section>
 
       {/* Popular tools */}
+      {/* Free Online PDF Tools */}
       <section className="container py-16 md:py-20">
         <div className="flex items-end justify-between gap-6 mb-8">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Popular PDF tools</h2>
-            <p className="mt-1 text-slate-600">The tools people open every day.</p>
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
+              100% free to start
+            </span>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight">Free Online PDF Tools</h2>
+            <p className="mt-1 text-slate-600">
+              Sign, convert, compress, merge, split, edit, and summarize PDFs online — for free.
+              No software install required.
+            </p>
           </div>
-          <Link href="/tools" className="text-sm font-medium text-brand-700 hover:underline inline-flex items-center gap-1">
-            All tools <ArrowRight className="h-4 w-4" />
+          <Link href="/tools/free" className="text-sm font-medium text-brand-700 hover:underline inline-flex items-center gap-1 whitespace-nowrap">
+            All free tools <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {featured.map((t) => <ToolCard key={t.slug} tool={t} />)}
+          {freePdf.map((t) => <ToolCard key={t.slug} tool={t} />)}
+        </div>
+      </section>
+
+      {/* Image Conversion Tools */}
+      <section className="container pb-16 md:pb-20">
+        <div className="flex items-end justify-between gap-6 mb-8">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Image Conversion Tools</h2>
+            <p className="mt-1 text-slate-600">
+              Convert between JPG, PNG, and PDF in your browser — runs locally on your device.
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {imageTools.map((t) => <ToolCard key={t.slug} tool={t} />)}
         </div>
       </section>
 

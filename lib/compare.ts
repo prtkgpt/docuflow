@@ -174,6 +174,66 @@ export const COMPARISONS: Comparison[] = [
     ourCta: { href: "/tools", label: "Try MyPDFKitty" },
     relatedToolSlugs: ["edit-pdf", "sign-pdf", "ai-summarizer", "chat-pdf"],
   },
+  {
+    slug: "best-free-pdf-signing-tools",
+    title: "Best Free PDF Signing Tools in 2026 | MyPDFKitty",
+    description: "Compare free online tools for signing PDFs. See which one fits typing, drawing, or uploading a signature.",
+    h1: "Best Free PDF Signing Tools in 2026",
+    intro:
+      "If you just need to sign a PDF and send it back, a free online signer is faster than installing an app. The best one for you depends on whether you want typed, drawn, or image-based signatures and whether you'll sign multiple pages.",
+    table: [
+      { name: "MyPDFKitty", pros: "Type, draw, or upload a signature; place on any page; no watermark.", cons: "Doesn't yet support multi-party signature workflows.", bestFor: "Personal contracts, forms, and one-off signing." },
+      { name: "Smallpdf eSign", pros: "Familiar UX.", cons: "Free tier limits per day; some features paywalled.", bestFor: "Light, occasional signing." },
+      { name: "DocuSign Free Trial", pros: "Industry-standard for legal e-sign.", cons: "Free tier is a 30-day trial, not a permanent free plan.", bestFor: "When you need an eIDAS-grade legal trail." },
+    ],
+    verdict: "For most people who just need to sign and send, MyPDFKitty's signer is the simplest path: free, no watermark, no install.",
+    faq: [
+      { q: "Are typed signatures legally binding?", a: "For most everyday agreements yes. For regulated workflows that require eIDAS or qualified e-signatures, use a service that specializes in legal signing." },
+      { q: "Can I sign on a phone?", a: "Yes — drawing with a finger works in mobile browsers." },
+    ],
+    ourCta: { href: "/tools/sign-pdf", label: "Sign a PDF for free" },
+    relatedToolSlugs: ["sign-pdf", "edit-pdf", "merge-pdf", "compress-pdf"],
+  },
+  {
+    slug: "best-free-pdf-to-word-converters",
+    title: "Best Free PDF to Word Converters in 2026 | MyPDFKitty",
+    description: "Compare free PDF to Word converters by output quality, file-size limits, and signup friction.",
+    h1: "Best Free PDF to Word Converters in 2026",
+    intro:
+      "Free PDF→Word converters all extract text, but quality varies a lot. The differences are how cleanly paragraphs survive, whether tables are preserved, and what they ask for in exchange.",
+    table: [
+      { name: "MyPDFKitty", pros: "Browser-based, no install. Paragraphs reflowed back from PDF wraps. No watermark.", cons: "Tables and images aren't preserved (yet).", bestFor: "Most everyday text-heavy PDFs." },
+      { name: "Smallpdf", pros: "Familiar UX.", cons: "Free tier limits conversions per day.", bestFor: "Occasional one-offs." },
+      { name: "Adobe Acrobat (Free Online)", pros: "Best fidelity for complex layouts.", cons: "Daily free conversion limit; pushes you to paid.", bestFor: "Documents with complex tables." },
+    ],
+    verdict: "If your PDF is text-first (reports, letters, articles), MyPDFKitty is the cleanest free path. If it's table-heavy, Adobe's online converter still wins for fidelity.",
+    faq: [
+      { q: "Why doesn't my Word document have tables?", a: "Tables in PDFs are tricky to extract reliably. We're working on it; for now we preserve clean text and lists." },
+      { q: "Is the conversion really free?", a: "Yes — files up to 10 MB on Free, no watermark." },
+    ],
+    ourCta: { href: "/tools/pdf-to-word", label: "Convert PDF to Word free" },
+    relatedToolSlugs: ["pdf-to-word", "word-to-pdf", "edit-pdf", "compress-pdf"],
+  },
+  {
+    slug: "best-free-image-converters",
+    title: "Best Free Image Converters in 2026 | MyPDFKitty",
+    description: "Compare free online tools for converting JPG, PNG, and PDF images.",
+    h1: "Best Free Image Converters in 2026",
+    intro:
+      "Most image converters are functionally identical for simple JPG↔PNG conversions. The real differences are privacy (does it run in your browser, or upload to a server?), batch support, and whether they nag you for an account.",
+    table: [
+      { name: "MyPDFKitty", pros: "Pure client-side conversion (image never leaves your device); no signup; supports JPG↔PNG and JPG/PNG↔PDF.", cons: "No batch mode yet for image-only conversions.", bestFor: "Privacy-conscious one-off conversions." },
+      { name: "iLovePDF / iLoveIMG", pros: "Wide tool catalog including image batches.", cons: "Ads on free tier; uploads images to a server.", bestFor: "Bulk image jobs where you don't mind the upload." },
+      { name: "Smallpdf", pros: "Clean UX.", cons: "Free tier limits per day.", bestFor: "Occasional one-offs." },
+    ],
+    verdict: "For JPG↔PNG specifically, MyPDFKitty's tools run in your browser — your images stay on your device. That's a real privacy win over server-uploads.",
+    faq: [
+      { q: "What's the difference between JPG and PNG?", a: "JPG is lossy and smaller, great for photos. PNG is lossless and supports transparency, great for graphics and screenshots." },
+      { q: "Is browser-side conversion as good as server-side?", a: "For JPG/PNG the browser uses the same encoders. Quality is identical to server-side; speed is comparable for normal-sized images." },
+    ],
+    ourCta: { href: "/tools/jpg-to-png", label: "Convert images for free" },
+    relatedToolSlugs: ["jpg-to-png", "png-to-jpg", "jpg-to-pdf", "pdf-to-jpg"],
+  },
 ];
 
 export function getComparison(slug: string): Comparison | undefined {

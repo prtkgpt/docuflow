@@ -3,9 +3,9 @@ import { MergeRunner } from "@/components/tools/MergeRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "Merge PDF Online – Combine PDF Files | MyPDFKitty",
+  title: "Merge PDF Online Free – Combine PDF Files | MyPDFKitty",
   description:
-    "Merge multiple PDF files into one document online. Upload, reorder, combine, and download your merged PDF with MyPDFKitty.",
+    "Merge multiple PDF files into one document online for free. Upload, reorder, combine, and download your merged PDF.",
   path: "/tools/merge-pdf",
 });
 
@@ -13,11 +13,11 @@ export default function Page() {
   return (
     <ToolPage
       slug="merge-pdf"
-      h1="Merge PDF Online"
-      intro="Merge two or more PDFs into a single file in your browser. Drop multiple PDFs, drag to reorder them, and download the combined document."
+      h1="Merge PDF Online Free"
+      intro="Merge two or more PDFs into a single file for free. Drop multiple PDFs, drag to reorder them, and download the combined document."
       runner={<MergeRunner endpoint="/api/tools/merge" toolPath="/tools/merge-pdf" cta="Merge PDFs" busyLabel="Merging…" />}
-      metaTitle="Merge PDF Online – Combine PDF Files | MyPDFKitty"
-      metaDescription="Merge multiple PDF files into one document online. Upload, reorder, combine, and download your merged PDF with MyPDFKitty."
+      metaTitle="Merge PDF Online Free – Combine PDF Files | MyPDFKitty"
+      metaDescription="Merge multiple PDF files into one document online for free. Upload, reorder, combine, and download your merged PDF."
       steps={[
         { name: "Upload PDFs", text: "Drop two or more PDFs onto the upload box. You can also add scans, contracts, or invoices." },
         { name: "Reorder them", text: "Drag the file rows to set the order you want." },

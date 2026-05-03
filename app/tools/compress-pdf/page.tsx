@@ -3,9 +3,9 @@ import { SimpleToolRunner } from "@/components/tools/SimpleToolRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "Compress PDF Online – Reduce PDF File Size | MyPDFKitty",
+  title: "Compress PDF Online Free – Reduce PDF Size | MyPDFKitty",
   description:
-    "Compress PDF files online with MyPDFKitty. Reduce PDF size for email, uploads, applications, and document sharing without installing software.",
+    "Compress PDF files online for free. Reduce PDF file size for email, uploads, applications, and sharing with MyPDFKitty.",
   path: "/tools/compress-pdf",
 });
 
@@ -13,8 +13,8 @@ export default function Page() {
   return (
     <ToolPage
       slug="compress-pdf"
-      h1="Compress PDF Online"
-      intro="Compress PDFs online to make them smaller and easier to email, upload, or share. Drop your file and download a slimmer PDF in seconds."
+      h1="Compress PDF Online Free"
+      intro="Compress PDFs online for free to make them smaller and easier to email, upload, or share. Drop your file and download a slimmer PDF in seconds."
       runner={
         <SimpleToolRunner
           toolPath="/tools/compress-pdf"
@@ -24,8 +24,8 @@ export default function Page() {
           doneLabel="Your compressed PDF is ready"
         />
       }
-      metaTitle="Compress PDF Online – Reduce PDF File Size | MyPDFKitty"
-      metaDescription="Compress PDF files online with MyPDFKitty. Reduce PDF size for email, uploads, applications, and document sharing without installing software."
+      metaTitle="Compress PDF Online Free – Reduce PDF Size | MyPDFKitty"
+      metaDescription="Compress PDF files online for free. Reduce PDF file size for email, uploads, applications, and sharing with MyPDFKitty."
       steps={[
         { name: "Upload your PDF", text: "Drag and drop your PDF onto the upload box or browse to select it from your computer." },
         { name: "Optimize the file", text: "MyPDFKitty rebuilds the PDF with smaller assets while keeping it readable." },

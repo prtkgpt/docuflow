@@ -8,7 +8,7 @@ import { SITE } from "@/lib/site";
 
 const NAV: { label: string; href: string }[] = [
   { label: "Tools", href: "/tools" },
-  { label: "Compress PDF", href: "/tools/compress-pdf" },
+  { label: "Free PDF Tools", href: "/tools/free" },
   { label: "Convert", href: "/tools/pdf-to-word" },
   { label: "AI PDF Tools", href: "/tools/ai-pdf-summarizer" },
   { label: "Blog", href: "/blog" },

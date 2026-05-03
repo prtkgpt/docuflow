@@ -3,9 +3,9 @@ import { SimpleToolRunner } from "@/components/tools/SimpleToolRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "PDF to Word Converter Online | MyPDFKitty",
+  title: "Convert PDF to Word Online Free | MyPDFKitty",
   description:
-    "Convert PDF files to editable Word documents online. Use MyPDFKitty to turn PDFs into DOCX files quickly.",
+    "Convert PDF files to editable Word documents online for free. Upload your PDF and download a DOCX file with MyPDFKitty.",
   path: "/tools/pdf-to-word",
 });
 
@@ -13,8 +13,8 @@ export default function Page() {
   return (
     <ToolPage
       slug="pdf-to-word"
-      h1="PDF to Word Converter"
-      intro="Convert PDFs into editable .docx files in your browser. Drop a PDF, MyPDFKitty extracts the text, and you can keep editing in Word, Google Docs, or Pages."
+      h1="Convert PDF to Word Online Free"
+      intro="Convert PDFs into editable .docx files for free. Drop a PDF, MyPDFKitty extracts the text, and you can keep editing in Word, Google Docs, or Pages."
       runner={
         <SimpleToolRunner
           toolPath="/tools/pdf-to-word"
@@ -24,8 +24,8 @@ export default function Page() {
           doneLabel="Your Word document is ready"
         />
       }
-      metaTitle="PDF to Word Converter Online | MyPDFKitty"
-      metaDescription="Convert PDF files to editable Word documents online. Use MyPDFKitty to turn PDFs into DOCX files quickly."
+      metaTitle="Convert PDF to Word Online Free | MyPDFKitty"
+      metaDescription="Convert PDF files to editable Word documents online for free. Upload your PDF and download a DOCX file with MyPDFKitty."
       steps={[
         { name: "Upload your PDF", text: "Drop the PDF you want to turn into a Word document." },
         { name: "Convert", text: "MyPDFKitty extracts the text content into an editable file." },

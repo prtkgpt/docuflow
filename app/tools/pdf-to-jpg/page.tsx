@@ -3,9 +3,9 @@ import { PdfToJpgRunner } from "@/components/tools/PdfToJpgRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "PDF to JPG Converter Online | MyPDFKitty",
+  title: "Convert PDF to JPG Online Free | MyPDFKitty",
   description:
-    "Convert PDF pages into JPG images online. Use MyPDFKitty to export PDF pages as image files.",
+    "Convert PDF pages to JPG images online for free. Upload a PDF and export pages as image files.",
   path: "/tools/pdf-to-jpg",
 });
 
@@ -13,11 +13,11 @@ export default function Page() {
   return (
     <ToolPage
       slug="pdf-to-jpg"
-      h1="PDF to JPG Converter"
-      intro="Convert each page of a PDF into a high-quality JPG image. Download all pages as a ZIP or grab individual ones."
+      h1="Convert PDF to JPG Online Free"
+      intro="Convert each page of a PDF into a high-quality JPG image for free. Download all pages as a ZIP or grab individual ones — runs entirely in your browser."
       runner={<PdfToJpgRunner />}
-      metaTitle="PDF to JPG Converter Online | MyPDFKitty"
-      metaDescription="Convert PDF pages into JPG images online. Use MyPDFKitty to export PDF pages as image files."
+      metaTitle="Convert PDF to JPG Online Free | MyPDFKitty"
+      metaDescription="Convert PDF pages to JPG images online for free. Upload a PDF and export pages as image files."
       steps={[
         { name: "Upload your PDF", text: "Drop the PDF you want to turn into images." },
         { name: "Convert", text: "MyPDFKitty renders each page as a JPG right in your browser." },

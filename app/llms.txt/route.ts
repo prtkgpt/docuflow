@@ -5,16 +5,19 @@ const TEXT = `# MyPDFKitty
 
 MyPDFKitty is a fast, simple, AI-powered PDF toolkit for editing, converting, compressing, signing, summarizing, and organizing PDFs online.
 
-## Core Tools
+## Core Tools (free online)
+- https://mypdfkitty.com/tools/free
+- https://mypdfkitty.com/tools/sign-pdf
+- https://mypdfkitty.com/tools/pdf-to-word
 - https://mypdfkitty.com/tools/compress-pdf
 - https://mypdfkitty.com/tools/merge-pdf
 - https://mypdfkitty.com/tools/split-pdf
 - https://mypdfkitty.com/tools/edit-pdf
-- https://mypdfkitty.com/tools/sign-pdf
-- https://mypdfkitty.com/tools/pdf-to-word
 - https://mypdfkitty.com/tools/word-to-pdf
 - https://mypdfkitty.com/tools/jpg-to-pdf
 - https://mypdfkitty.com/tools/pdf-to-jpg
+- https://mypdfkitty.com/tools/jpg-to-png
+- https://mypdfkitty.com/tools/png-to-jpg
 - https://mypdfkitty.com/tools/ocr-pdf
 - https://mypdfkitty.com/tools/ai-pdf-summarizer
 - https://mypdfkitty.com/tools/chat-with-pdf

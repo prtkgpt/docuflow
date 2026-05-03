@@ -2,9 +2,9 @@ import { ToolPage } from "@/components/ToolPageLayout";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "Sign PDF Online – Add Your Signature | MyPDFKitty",
+  title: "Sign PDF Online Free – Add Signature to PDF | MyPDFKitty",
   description:
-    "Sign PDF documents online by typing, drawing, or uploading your signature. Use MyPDFKitty to sign forms, contracts, and documents quickly.",
+    "Sign PDF files online for free with MyPDFKitty. Upload a PDF, draw or type your signature, place it on the document, and download your signed PDF.",
   path: "/tools/sign-pdf",
 });
 
@@ -12,11 +12,11 @@ export default function Page() {
   return (
     <ToolPage
       slug="sign-pdf"
-      h1="Sign PDF Online"
-      intro="Sign PDFs in your browser by typing, drawing, or uploading your signature. Place your signature anywhere on the page and download a signed PDF."
+      h1="Sign PDF Online Free"
+      intro="Sign PDFs in your browser for free. Type or draw your signature, place it on the page, and download your signed PDF in seconds."
       uploadRedirect="/editor"
-      metaTitle="Sign PDF Online – Add Your Signature | MyPDFKitty"
-      metaDescription="Sign PDF documents online by typing, drawing, or uploading your signature. Use MyPDFKitty to sign forms, contracts, and documents quickly."
+      metaTitle="Sign PDF Online Free – Add Signature to PDF | MyPDFKitty"
+      metaDescription="Sign PDF files online for free with MyPDFKitty. Upload a PDF, draw or type your signature, place it on the document, and download your signed PDF."
       steps={[
         { name: "Upload the PDF", text: "Drop the contract, form, or document you need to sign." },
         { name: "Create your signature", text: "Type your name, draw with a mouse or trackpad, or upload a signature image." },

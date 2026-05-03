@@ -480,6 +480,286 @@ export const BLOG_POSTS: BlogPost[] = [
       { q: "What if it's still too big?", a: "Split the PDF and email in parts, or share a download link." },
     ],
   },
+  // ---------------------------------------------------------------------
+  // "Online free" intent variants (high-volume search terms). These are
+  // shorter, answer-first, action-focused — they exist to rank for the
+  // "<task> online free" cluster and funnel users straight to the tool.
+  // ---------------------------------------------------------------------
+  {
+    slug: "how-to-sign-a-pdf-online-free",
+    title: "How to Sign a PDF Online Free",
+    description: "Sign a PDF online for free in under a minute — no install, no credit card.",
+    category: "PDF editing",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/sign-pdf",
+    primaryToolLabel: "Sign PDF Online Free",
+    relatedToolSlugs: ["edit-pdf", "merge-pdf", "compress-pdf"],
+    relatedPostSlug: "how-to-edit-a-pdf-online-free",
+    answer:
+      "To sign a PDF online for free, open MyPDFKitty's Sign PDF tool, upload your file, type or draw your signature, place it on the right page, and click Done to download the signed PDF. The tool is free, runs in your browser, and doesn't ask for a credit card.",
+    howToSteps: [
+      { name: "Open Sign PDF", text: "Go to MyPDFKitty's Sign PDF tool — it's free." },
+      { name: "Upload the PDF", text: "Drop the contract, form, or letter you need to sign." },
+      { name: "Add your signature", text: "Type, draw, or upload an image of your signature." },
+      { name: "Place and download", text: "Drag the signature where you want it and click Done to save the signed PDF." },
+    ],
+    body: [
+      { type: "h2", text: "Is signing a PDF online really free?" },
+      { type: "p", text: "Yes. MyPDFKitty's signing tool is free. Files up to 10 MB on the Free plan, no watermark, no email required to download." },
+      { type: "h2", text: "Common problems" },
+      { type: "ul", items: [
+        "Signature looks too small — drag a corner handle to resize before saving.",
+        "Wrong page — click the signature, drag it to the right page, or use Manage Pages.",
+        "Need initials on every page — copy the placed signature, paste, repeat.",
+      ] },
+    ],
+    faq: [
+      { q: "Are typed signatures legally binding?", a: "For most everyday agreements yes. For regulated workflows (banking, real estate in some jurisdictions), use a service that supports eIDAS/qualified signatures." },
+      { q: "Will my signed PDF have a watermark?", a: "No. Free downloads are clean — no watermark, no branding." },
+    ],
+  },
+  {
+    slug: "how-to-convert-pdf-to-word-online-free",
+    title: "How to Convert PDF to Word Online Free",
+    description: "Convert a PDF to an editable .docx for free in your browser.",
+    category: "PDF conversion",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/pdf-to-word",
+    primaryToolLabel: "Convert PDF to Word Online Free",
+    relatedToolSlugs: ["word-to-pdf", "edit-pdf", "ocr-pdf"],
+    relatedPostSlug: "how-to-edit-a-pdf-online-free",
+    answer:
+      "To convert a PDF to Word online for free, open MyPDFKitty's PDF to Word tool, upload the PDF, click Convert to Word, and download the .docx. The conversion is free for files up to 10 MB; open the result in Word, Google Docs, or Pages.",
+    howToSteps: [
+      { name: "Open PDF to Word", text: "Go to MyPDFKitty's free PDF to Word converter." },
+      { name: "Upload your PDF", text: "Drop the PDF onto the upload box." },
+      { name: "Convert", text: "Click Convert to Word — text is extracted into an editable file." },
+      { name: "Download the .docx", text: "Open the result in Word, Google Docs, or Pages." },
+    ],
+    body: [
+      { type: "h2", text: "What gets preserved?" },
+      { type: "ul", items: [
+        "Plain text and basic paragraph structure.",
+        "Headings (when the PDF uses real headings, not big text).",
+        "Bullet and numbered lists.",
+      ] },
+      { type: "h2", text: "What needs cleanup" },
+      { type: "ul", items: [
+        "Complex tables and multi-column layouts may need manual fixes.",
+        "Inline formatting (bold/italic mid-paragraph) is flattened.",
+        "Images are skipped — copy them from the original PDF if needed.",
+      ] },
+      { type: "callout", text: "Scanned PDF? Run OCR first to extract the text, then convert." },
+    ],
+    faq: [
+      { q: "Is the conversion really free?", a: "Yes — files up to 10 MB on the Free plan, no watermark, no email required to download." },
+      { q: "Why is my converted document missing tables?", a: "Tables in PDFs are tricky. We preserve plain text reliably; complex tables are on the roadmap." },
+    ],
+  },
+  {
+    slug: "how-to-convert-jpg-to-png-online-free",
+    title: "How to Convert JPG to PNG Online Free",
+    description: "Convert JPG to PNG free, in your browser — no upload to a server.",
+    category: "PDF conversion",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/jpg-to-png",
+    primaryToolLabel: "Convert JPG to PNG Online Free",
+    relatedToolSlugs: ["png-to-jpg", "jpg-to-pdf", "pdf-to-jpg"],
+    answer:
+      "To convert a JPG to PNG online for free, open MyPDFKitty's JPG to PNG tool, drop your JPG, click Convert to PNG, and download. The conversion runs entirely in your browser — your image never leaves your computer.",
+    howToSteps: [
+      { name: "Open the tool", text: "Go to MyPDFKitty's free JPG to PNG converter." },
+      { name: "Upload your JPG", text: "Drop a JPG onto the upload box." },
+      { name: "Convert", text: "Click Convert to PNG — your browser re-encodes the image locally." },
+      { name: "Download the PNG", text: "Save the result." },
+    ],
+    body: [
+      { type: "p", text: "PNG is lossless and supports transparency, while JPG is smaller but lossy. Converting JPG → PNG is useful for design work, web tools that demand PNG uploads, or when you'll edit the image again and want to avoid re-compression artifacts." },
+    ],
+    faq: [
+      { q: "Will my image quality improve?", a: "PNG is lossless going forward, but it can't recover detail JPG already discarded. Expect the same visual quality as the source JPG, just in a lossless container." },
+      { q: "Where does the conversion happen?", a: "Entirely in your browser — your image is never uploaded to a server." },
+    ],
+  },
+  {
+    slug: "how-to-compress-a-pdf-online-free",
+    title: "How to Compress a PDF Online Free",
+    description: "Shrink a PDF online for free so you can email it or upload it without limits.",
+    category: "PDF editing",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/compress-pdf",
+    primaryToolLabel: "Compress PDF Online Free",
+    relatedToolSlugs: ["merge-pdf", "split-pdf", "edit-pdf"],
+    relatedPostSlug: "how-to-compress-a-pdf-for-email",
+    answer:
+      "To compress a PDF online for free, open MyPDFKitty's Compress PDF tool, upload your file, and click Compress PDF. We re-save it with optimized streams and show you both the original and new size so you can decide whether to use the result. Free for files up to 10 MB.",
+    howToSteps: [
+      { name: "Open Compress PDF", text: "Go to MyPDFKitty's free Compress PDF tool." },
+      { name: "Upload your PDF", text: "Drop or browse to select your file." },
+      { name: "Compress", text: "Click Compress PDF and wait a few seconds." },
+      { name: "Download", text: "We show original vs new size; download the smaller version." },
+    ],
+    body: [
+      { type: "h2", text: "Common problems" },
+      { type: "ul", items: [
+        "PDF didn't shrink much — usually means it's already optimized text or scanned imagery.",
+        "Need it under 5 MB for an ATS — split out unneeded pages first.",
+      ] },
+    ],
+    faq: [
+      { q: "Is there a watermark?", a: "No. Free downloads are clean." },
+      { q: "What's the file size limit?", a: "10 MB on Free, 100 MB on Pro, 500 MB on Business." },
+    ],
+  },
+  {
+    slug: "how-to-merge-pdf-files-online-free",
+    title: "How to Merge PDF Files Online Free",
+    description: "Combine multiple PDFs into one file online — free, no install.",
+    category: "PDF editing",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/merge-pdf",
+    primaryToolLabel: "Merge PDF Online Free",
+    relatedToolSlugs: ["split-pdf", "compress-pdf", "edit-pdf"],
+    relatedPostSlug: "how-to-split-a-pdf-online-free",
+    answer:
+      "To merge PDFs online for free, open MyPDFKitty's Merge PDF tool, drop two or more PDFs, drag them into the order you want, and click Merge PDFs. The combined PDF downloads in seconds — clean output, no watermark.",
+    howToSteps: [
+      { name: "Open Merge PDF", text: "Go to MyPDFKitty's free Merge PDF tool." },
+      { name: "Add your files", text: "Drop two or more PDFs together onto the upload box." },
+      { name: "Reorder them", text: "Drag the file rows to set the order you want." },
+      { name: "Merge & download", text: "Click Merge PDFs to combine and download." },
+    ],
+    body: [{ type: "p", text: "Merging is the fastest way to send a single file instead of three: receipts, contracts, scans, application materials." }],
+    faq: [
+      { q: "Is there a file count limit?", a: "Plan dependent. Free covers everyday use." },
+      { q: "Does the merged PDF have a watermark?", a: "No." },
+    ],
+  },
+  {
+    slug: "how-to-split-a-pdf-online-free",
+    title: "How to Split a PDF Online Free",
+    description: "Extract specific pages or split a PDF into multiple files online for free.",
+    category: "PDF editing",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/split-pdf",
+    primaryToolLabel: "Split PDF Online Free",
+    relatedToolSlugs: ["merge-pdf", "compress-pdf", "edit-pdf"],
+    relatedPostSlug: "how-to-merge-pdf-files-online-free",
+    answer:
+      "To split a PDF online for free, open MyPDFKitty's Split PDF tool, upload your file, type the pages or ranges you want (for example 1-3, 5, 8-10), and click Extract pages. The new PDF downloads in seconds.",
+    howToSteps: [
+      { name: "Open Split PDF", text: "Go to MyPDFKitty's free Split PDF tool." },
+      { name: "Upload your PDF", text: "Drop a single PDF onto the upload box." },
+      { name: "Pick pages", text: "Type ranges like 1-3, 5, 8-10." },
+      { name: "Extract & download", text: "Click Extract pages and save the new PDF." },
+    ],
+    body: [{ type: "p", text: "Use Split when you only need a few chapters, when you're trimming duplicates, or when you're sending one section of a contract." }],
+    faq: [
+      { q: "Can I extract a single page?", a: "Yes — type the page number (e.g. 5)." },
+      { q: "Will formatting be preserved?", a: "Yes." },
+    ],
+  },
+  {
+    slug: "how-to-edit-a-pdf-online-free",
+    title: "How to Edit a PDF Online Free",
+    description: "Add text, signatures, images, and notes to a PDF online — free.",
+    category: "PDF editing",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/edit-pdf",
+    primaryToolLabel: "Edit PDF Online Free",
+    relatedToolSlugs: ["sign-pdf", "merge-pdf", "compress-pdf"],
+    relatedPostSlug: "how-to-sign-a-pdf-online-free",
+    answer:
+      "To edit a PDF online for free, open MyPDFKitty's editor, upload your file, and use the toolbar to add text, highlights, images, signatures, and notes. Click Done to download a flattened PDF with your edits saved. Free for files up to 10 MB, no watermark.",
+    howToSteps: [
+      { name: "Open the editor", text: "Go to MyPDFKitty's free Edit PDF tool." },
+      { name: "Upload the PDF", text: "Drop your PDF in the editor." },
+      { name: "Make edits", text: "Add text, highlights, images, signatures, or notes from the toolbar." },
+      { name: "Save", text: "Click Done and download the edited PDF." },
+    ],
+    body: [{ type: "p", text: "The editor handles the everyday stuff: filling forms that aren't really fillable, leaving notes on a contract, adding a logo, or rearranging pages." }],
+    faq: [
+      { q: "Can I edit existing PDF text?", a: "You can add new text and shapes today. Rewriting the original PDF text is on the roadmap." },
+      { q: "Watermark on free downloads?", a: "No watermark." },
+    ],
+  },
+  {
+    slug: "how-to-convert-jpg-to-pdf-online-free",
+    title: "How to Convert JPG to PDF Online Free",
+    description: "Combine images into a single PDF online — free.",
+    category: "PDF conversion",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/jpg-to-pdf",
+    primaryToolLabel: "Convert JPG to PDF Online Free",
+    relatedToolSlugs: ["pdf-to-jpg", "jpg-to-png", "compress-pdf"],
+    answer:
+      "To convert JPG to PDF online for free, open MyPDFKitty's JPG to PDF tool, drop one or more JPG/PNG images, drag to reorder, and click Convert. Each image becomes a page in the resulting PDF.",
+    howToSteps: [
+      { name: "Open JPG to PDF", text: "Go to MyPDFKitty's free JPG to PDF tool." },
+      { name: "Upload images", text: "Drop one or more JPGs (or PNGs)." },
+      { name: "Order pages", text: "Drag the file rows to set the order." },
+      { name: "Convert & download", text: "Click Convert images to PDF and save." },
+    ],
+    body: [{ type: "p", text: "Common cases: receipts to expense reports, phone scans to a multi-page document, application photos to one PDF." }],
+    faq: [
+      { q: "What formats are supported?", a: "JPG and PNG today." },
+      { q: "Is there a watermark?", a: "No." },
+    ],
+  },
+  {
+    slug: "how-to-convert-word-to-pdf-online-free",
+    title: "How to Convert Word to PDF Online Free",
+    description: "Convert .docx to PDF online — free, no install.",
+    category: "PDF conversion",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/word-to-pdf",
+    primaryToolLabel: "Convert Word to PDF Online Free",
+    relatedToolSlugs: ["pdf-to-word", "merge-pdf", "compress-pdf"],
+    relatedPostSlug: "how-to-convert-pdf-to-word-online-free",
+    answer:
+      "To convert Word to PDF online for free, open MyPDFKitty's Word to PDF tool, upload your .doc/.docx file, and click Convert to PDF. We rebuild the document as a PDF preserving headings, paragraphs, and lists. Free for files up to 10 MB, no watermark.",
+    howToSteps: [
+      { name: "Open Word to PDF", text: "Go to MyPDFKitty's free Word to PDF converter." },
+      { name: "Upload your file", text: "Drop a .doc or .docx file." },
+      { name: "Convert", text: "Click Convert to PDF." },
+      { name: "Download", text: "Save the PDF and use it anywhere." },
+    ],
+    body: [
+      { type: "h2", text: "What's preserved" },
+      { type: "ul", items: ["Headings, paragraphs, and bullet/numbered lists.", "Text content and basic formatting."] },
+      { type: "h2", text: "What's not (yet)" },
+      { type: "ul", items: ["Tables and embedded images aren't preserved in v1 — they're on the roadmap."] },
+    ],
+    faq: [
+      { q: "Will my fonts be preserved?", a: "Standard fonts are mapped to Helvetica/Times/Courier. For exact font fidelity, export to PDF directly from Word/Pages." },
+    ],
+  },
+  {
+    slug: "how-to-summarize-a-pdf-with-ai-free",
+    title: "How to Summarize a PDF with AI Free",
+    description: "Summarize a PDF with AI online — free, with smart limits.",
+    category: "AI PDF",
+    publishedAt: "2026-02-01",
+    primaryToolHref: "/tools/ai-pdf-summarizer",
+    primaryToolLabel: "AI PDF Summarizer Free",
+    relatedToolSlugs: ["chat-pdf", "key-points", "ocr-pdf"],
+    relatedPostSlug: "how-to-summarize-a-pdf-with-ai",
+    answer:
+      "To summarize a PDF with AI for free, open MyPDFKitty's AI PDF Summarizer, upload a PDF, and we'll return a short summary, bulleted highlights, key takeaways, and action items. Free users get 3 summaries per day on PDFs up to ~6 pages of text — upgrade to Pro for larger documents and 100/day.",
+    howToSteps: [
+      { name: "Open the summarizer", text: "Go to MyPDFKitty's AI PDF Summarizer." },
+      { name: "Upload your PDF", text: "Drop a report, paper, or contract." },
+      { name: "Generate", text: "We extract the text and ask the AI to summarize it." },
+      { name: "Review", text: "Read the short summary, highlights, takeaways, and actions." },
+    ],
+    body: [
+      { type: "callout", text: "Free plan: 3 summaries/day on PDFs up to ~8,000 characters of text. Pro: 100/day on much larger files. Business: effectively unlimited." },
+    ],
+    faq: [
+      { q: "Is AI summarization really free?", a: "Yes, with daily limits. Sign in (free) and you can summarize 3 short PDFs every day." },
+      { q: "What if the PDF is a scan?", a: "Run OCR first to extract the text, then summarize." },
+    ],
+  },
 ];
 
 export function getAllPosts(): BlogPost[] {

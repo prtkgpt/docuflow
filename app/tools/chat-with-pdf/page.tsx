@@ -3,9 +3,9 @@ import { InlineChatWithPdf } from "@/components/InlineChatWithPdf";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "Chat With PDF – Ask Questions About Your PDF | MyPDFKitty",
+  title: "Chat With PDF Free – Ask Questions About PDFs | MyPDFKitty",
   description:
-    "Chat with your PDF using AI. Upload a document, ask questions, and get clear answers based on the file content.",
+    "Chat with your PDF using AI. Upload a document, ask questions, and get clear answers based on the file.",
   path: "/tools/chat-with-pdf",
 });
 
@@ -13,11 +13,11 @@ export default function Page() {
   return (
     <ToolPage
       slug="chat-with-pdf"
-      h1="Chat With PDF"
-      intro="Ask questions about a PDF and get answers grounded in the document. Upload a contract, research paper, or report and chat with it like you'd chat with a teammate."
+      h1="Chat With PDF Free"
+      intro="Ask questions about a PDF and get answers grounded in the document. Free users get 10 questions per day on shorter PDFs — upgrade for larger files and unlimited usage."
       runner={<InlineChatWithPdf />}
-      metaTitle="Chat With PDF – Ask Questions About Your PDF | MyPDFKitty"
-      metaDescription="Chat with your PDF using AI. Upload a document, ask questions, and get clear answers based on the file content."
+      metaTitle="Chat With PDF Free – Ask Questions About PDFs | MyPDFKitty"
+      metaDescription="Chat with your PDF using AI. Upload a document, ask questions, and get clear answers based on the file."
       steps={[
         { name: "Upload your PDF", text: "Drop the document you want to chat with." },
         { name: "Ask a question", text: "Type a question in plain English. Be specific for best results." },

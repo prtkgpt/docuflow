@@ -3,9 +3,9 @@ import { ComingSoonRunner } from "@/components/tools/ComingSoonRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "OCR PDF Online – Convert Scanned PDFs to Text | MyPDFKitty",
+  title: "OCR PDF Online Free – Convert Scanned PDFs to Text | MyPDFKitty",
   description:
-    "Use OCR to convert scanned PDFs into searchable, selectable text online with MyPDFKitty.",
+    "Use OCR online to convert scanned PDFs into searchable, selectable text with MyPDFKitty.",
   path: "/tools/ocr-pdf",
 });
 
@@ -13,16 +13,16 @@ export default function Page() {
   return (
     <ToolPage
       slug="ocr-pdf"
-      h1="OCR PDF Online"
-      intro="Run OCR on a scanned PDF to make it searchable. We're getting this one production-ready — for now, try the AI summarizer on text-based PDFs."
+      h1="OCR PDF Online Free"
+      intro="Run OCR on a scanned PDF to make it searchable. We're getting this one production-ready — marked clearly as beta. For text-based PDFs today, try the AI summarizer."
       runner={
         <ComingSoonRunner
           toolName="OCR PDF"
           fallbackTip={{ label: "Try the AI Summarizer (text PDFs)", href: "/tools/ai-pdf-summarizer" }}
         />
       }
-      metaTitle="OCR PDF Online – Convert Scanned PDFs to Text | MyPDFKitty"
-      metaDescription="Use OCR to convert scanned PDFs into searchable, selectable text online with MyPDFKitty."
+      metaTitle="OCR PDF Online Free – Convert Scanned PDFs to Text | MyPDFKitty"
+      metaDescription="Use OCR online to convert scanned PDFs into searchable, selectable text with MyPDFKitty."
       steps={[
         { name: "Upload the scanned PDF", text: "Drop a scan from your phone, scanner, or fax archive." },
         { name: "Run OCR", text: "MyPDFKitty extracts the text from each page." },

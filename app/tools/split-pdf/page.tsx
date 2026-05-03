@@ -3,9 +3,9 @@ import { SplitRunner } from "@/components/tools/SplitRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "Split PDF Online – Extract PDF Pages | MyPDFKitty",
+  title: "Split PDF Online Free – Extract PDF Pages | MyPDFKitty",
   description:
-    "Split a PDF into separate files or extract selected pages online. Use MyPDFKitty to organize and download only the pages you need.",
+    "Split PDF files online for free. Extract selected pages or create separate PDF files with MyPDFKitty.",
   path: "/tools/split-pdf",
 });
 
@@ -13,11 +13,11 @@ export default function Page() {
   return (
     <ToolPage
       slug="split-pdf"
-      h1="Split PDF Online"
-      intro="Split a PDF into separate files or extract specific pages. Use simple page ranges like 1-3, 5, 8-10 to pull out exactly what you need and download it."
+      h1="Split PDF Online Free"
+      intro="Split a PDF into separate files or extract specific pages for free. Use simple page ranges like 1-3, 5, 8-10 to pull out exactly what you need."
       runner={<SplitRunner />}
-      metaTitle="Split PDF Online – Extract PDF Pages | MyPDFKitty"
-      metaDescription="Split a PDF into separate files or extract selected pages online. Use MyPDFKitty to organize and download only the pages you need."
+      metaTitle="Split PDF Online Free – Extract PDF Pages | MyPDFKitty"
+      metaDescription="Split PDF files online for free. Extract selected pages or create separate PDF files with MyPDFKitty."
       steps={[
         { name: "Upload your PDF", text: "Drop a single PDF onto the upload box." },
         { name: "Pick pages", text: "Type page ranges like 1-3, 5, 8-10." },

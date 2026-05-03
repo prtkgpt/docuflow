@@ -14,6 +14,8 @@ const TOOL_SLUGS = [
   "word-to-pdf",
   "jpg-to-pdf",
   "pdf-to-jpg",
+  "jpg-to-png",
+  "png-to-jpg",
   "ocr-pdf",
   "ai-pdf-summarizer",
   "chat-with-pdf",
@@ -30,6 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths: { path: string; priority?: number; changeFreq?: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
     { path: "/", priority: 1, changeFreq: "weekly" },
     { path: "/tools", priority: 0.9, changeFreq: "weekly" },
+    { path: "/tools/free", priority: 0.95, changeFreq: "weekly" },
     { path: "/blog", priority: 0.7, changeFreq: "weekly" },
     { path: "/compare", priority: 0.7, changeFreq: "monthly" },
     { path: "/pricing", priority: 0.8, changeFreq: "monthly" },
