@@ -1,4 +1,5 @@
 import { ToolPage } from "@/components/ToolPageLayout";
+import { SimpleToolRunner } from "@/components/tools/SimpleToolRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -13,8 +14,16 @@ export default function Page() {
     <ToolPage
       slug="compress-pdf"
       h1="Compress PDF Online"
-      intro="Compress PDFs online to make them smaller and easier to email, upload, or share. Drop your file, choose how aggressive you want the compression, and download a slimmer PDF in seconds."
-      uploadRedirect="/editor"
+      intro="Compress PDFs online to make them smaller and easier to email, upload, or share. Drop your file and download a slimmer PDF in seconds."
+      runner={
+        <SimpleToolRunner
+          toolPath="/tools/compress-pdf"
+          endpoint="/api/tools/compress"
+          cta="Compress PDF"
+          busyLabel="Optimizing…"
+          doneLabel="Your compressed PDF is ready"
+        />
+      }
       metaTitle="Compress PDF Online – Reduce PDF File Size | MyPDFKitty"
       metaDescription="Compress PDF files online with MyPDFKitty. Reduce PDF size for email, uploads, applications, and document sharing without installing software."
       steps={[
@@ -34,7 +43,7 @@ export default function Page() {
         { slug: "how-to-compress-a-pdf-for-email", title: "How to compress a PDF for email" },
       ]}
       faq={[
-        { q: "How do I compress a PDF without losing quality?", a: "Upload your PDF, let MyPDFKitty optimize it, and review the result. Most documents shrink with no visible loss; if quality matters, keep the original and use the smaller copy only for sharing." },
+        { q: "How much smaller will my PDF get?", a: "Text-only PDFs are usually already small. Image-heavy PDFs and scans see the biggest savings. We always show both the original and the new size so you can decide whether to use the result." },
         { q: "What's the maximum file size?", a: "Free accounts can compress PDFs up to 10 MB. Pro raises that to 100 MB and Business to 500 MB." },
         { q: "Is the compressed PDF safe to share?", a: "Yes. Files are uploaded over HTTPS and isolated to your account. Delete a file from your dashboard at any time." },
         { q: "Why is my compressed PDF still large?", a: "Image-heavy PDFs and scans compress less than text. Try splitting the PDF and compressing only the heaviest pages." },

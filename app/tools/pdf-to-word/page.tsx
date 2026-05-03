@@ -1,4 +1,5 @@
 import { ToolPage } from "@/components/ToolPageLayout";
+import { SimpleToolRunner } from "@/components/tools/SimpleToolRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -14,7 +15,15 @@ export default function Page() {
       slug="pdf-to-word"
       h1="PDF to Word Converter"
       intro="Convert PDFs into editable .docx files in your browser. Drop a PDF, MyPDFKitty extracts the text, and you can keep editing in Word, Google Docs, or Pages."
-      uploadRedirect="/editor"
+      runner={
+        <SimpleToolRunner
+          toolPath="/tools/pdf-to-word"
+          endpoint="/api/tools/to-word"
+          cta="Convert to Word"
+          busyLabel="Converting…"
+          doneLabel="Your Word document is ready"
+        />
+      }
       metaTitle="PDF to Word Converter Online | MyPDFKitty"
       metaDescription="Convert PDF files to editable Word documents online. Use MyPDFKitty to turn PDFs into DOCX files quickly."
       steps={[
@@ -34,8 +43,8 @@ export default function Page() {
         { slug: "how-to-convert-scanned-pdf-to-text", title: "How to convert a scanned PDF to text" },
       ]}
       faq={[
-        { q: "Will my formatting be preserved?", a: "Text and basic formatting are preserved. Complex tables and multi-column layouts may need light cleanup in Word." },
-        { q: "Can I convert a scanned PDF?", a: "For scanned PDFs, run OCR first using the OCR PDF tool, then convert to Word." },
+        { q: "Will my formatting be preserved?", a: "Plain text and basic formatting are preserved. Complex tables and multi-column layouts may need light cleanup in Word." },
+        { q: "Can I convert a scanned PDF?", a: "For scanned PDFs, run OCR first using the OCR PDF tool (coming soon), then convert to Word." },
         { q: "Is my file deleted after conversion?", a: "Files are stored in your private workspace. Delete a file from your dashboard at any time." },
       ]}
     />

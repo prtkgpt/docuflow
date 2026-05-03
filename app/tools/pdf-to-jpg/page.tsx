@@ -1,4 +1,5 @@
 import { ToolPage } from "@/components/ToolPageLayout";
+import { PdfToJpgRunner } from "@/components/tools/PdfToJpgRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -13,14 +14,14 @@ export default function Page() {
     <ToolPage
       slug="pdf-to-jpg"
       h1="PDF to JPG Converter"
-      intro="Convert each page of a PDF into a high-quality JPG image. Great for previews, slides, and sharing single pages on social or chat."
-      uploadRedirect="/editor"
+      intro="Convert each page of a PDF into a high-quality JPG image. Download all pages as a ZIP or grab individual ones."
+      runner={<PdfToJpgRunner />}
       metaTitle="PDF to JPG Converter Online | MyPDFKitty"
       metaDescription="Convert PDF pages into JPG images online. Use MyPDFKitty to export PDF pages as image files."
       steps={[
         { name: "Upload your PDF", text: "Drop the PDF you want to turn into images." },
-        { name: "Pick pages", text: "Choose all pages or specific ranges." },
-        { name: "Download the JPGs", text: "Get one JPG per page, ready to share." },
+        { name: "Convert", text: "MyPDFKitty renders each page as a JPG right in your browser." },
+        { name: "Download", text: "Grab one image at a time or download them all as a ZIP." },
       ]}
       whenToUse={[
         "Sharing a single page on Slack, WhatsApp, or social media.",
@@ -33,9 +34,9 @@ export default function Page() {
         { slug: "how-to-convert-pdf-to-jpg", title: "How to convert PDF to JPG online" },
       ]}
       faq={[
-        { q: "What's the resolution of the JPGs?", a: "Each page exports at a high enough resolution for screens and standard sharing. Use the editor's zoom to validate fidelity." },
-        { q: "Can I get PNGs instead?", a: "Yes — pick the PNG option from the Convert tools menu." },
-        { q: "Can I export only one page?", a: "Yes. Use Split PDF to extract the page first, then convert that PDF to JPG." },
+        { q: "Where does the conversion happen?", a: "It runs in your browser — your PDF never leaves your device for this tool." },
+        { q: "What's the quality?", a: "Each page is rendered at 2x resolution and exported as a JPG at 92% quality." },
+        { q: "Can I get PNGs instead?", a: "PNG export is on the roadmap. For now, JPG is the only output." },
       ]}
     />
   );

@@ -1,4 +1,5 @@
 import { ToolPage } from "@/components/ToolPageLayout";
+import { ComingSoonRunner } from "@/components/tools/ComingSoonRunner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -13,8 +14,13 @@ export default function Page() {
     <ToolPage
       slug="ocr-pdf"
       h1="OCR PDF Online"
-      intro="Run OCR (optical character recognition) on a scanned PDF to make it searchable and selectable. Drop a scan and get back text you can copy, search, or feed into AI tools."
-      uploadRedirect="/editor"
+      intro="Run OCR on a scanned PDF to make it searchable. We're getting this one production-ready — for now, try the AI summarizer on text-based PDFs."
+      runner={
+        <ComingSoonRunner
+          toolName="OCR PDF"
+          fallbackTip={{ label: "Try the AI Summarizer (text PDFs)", href: "/tools/ai-pdf-summarizer" }}
+        />
+      }
       metaTitle="OCR PDF Online – Convert Scanned PDFs to Text | MyPDFKitty"
       metaDescription="Use OCR to convert scanned PDFs into searchable, selectable text online with MyPDFKitty."
       steps={[
@@ -34,9 +40,8 @@ export default function Page() {
         { slug: "how-to-summarize-a-pdf-with-ai", title: "How to summarize a PDF with AI" },
       ]}
       faq={[
-        { q: "How accurate is OCR?", a: "Accuracy depends on the scan quality. Clean, high-contrast scans deliver near-perfect text; faint or skewed scans need light cleanup." },
-        { q: "Does OCR support languages other than English?", a: "We're rolling out multi-language OCR. English-language scans work today." },
-        { q: "Will the layout be preserved?", a: "OCR focuses on extracting text. To keep the visual layout, also save the original PDF alongside the OCR output." },
+        { q: "Why isn't OCR live yet?", a: "Reliable OCR needs careful tuning so we don't return garbage on poor scans. We're working on it." },
+        { q: "What can I do today?", a: "If your PDF is text-based (not a scan), the AI Summarizer and Chat with PDF already work." },
       ]}
     />
   );
