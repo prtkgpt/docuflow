@@ -20,27 +20,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Invalid signature: ${err.message}` }, { status: 400 });
   }
 
-  // checkout.session.completed handles two kinds of purchases:
+  // checkout.session.completed handles three kinds of purchases:
   //   1. Subscription start (cs.mode === "subscription") → upsert the
   //      user's Subscription row.
   //   2. AI credit pack one-time payment (metadata.purchase === "credit_pack")
   //      → bump user.chatQuestionsCredits.
+  //   3. Tip (metadata.purchase === "tip") → log only; no plan change.
+  // Dispatch is explicit (not fall-through) so a future purchase type
+  // never accidentally upgrades a user.
   if (event.type === "checkout.session.completed") {
     const cs = event.data.object as Stripe.Checkout.Session;
+    const purchase = cs.metadata?.purchase;
+
+    if (purchase === "tip") {
+      // Tips don't change account state. We log so it shows up in Vercel
+      // logs alongside Stripe's own dashboard.
+      console.log("[stripe] tip received", {
+        amountCents: cs.metadata?.amountCents,
+        email: cs.customer_email,
+        sessionId: cs.id,
+      });
+      return NextResponse.json({ received: true });
+    }
+
     const email = cs.customer_email;
     if (!email) return NextResponse.json({ received: true });
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return NextResponse.json({ received: true });
 
-    if (cs.metadata?.purchase === "credit_pack") {
-      const questions = parseInt(cs.metadata.questions ?? "0", 10);
+    if (purchase === "credit_pack") {
+      const questions = parseInt(cs.metadata?.questions ?? "0", 10);
       if (questions > 0) {
         await prisma.user.update({
           where: { id: user.id },
           data: { chatQuestionsCredits: { increment: questions } },
         });
       }
-    } else {
+    } else if (cs.mode === "subscription") {
       const plan = (cs.metadata?.plan as "plus" | "pro" | "business" | undefined) ?? "plus";
       await prisma.subscription.upsert({
         where: { userId: user.id },
@@ -57,6 +73,13 @@ export async function POST(req: NextRequest) {
           stripeCustomerId: typeof cs.customer === "string" ? cs.customer : null,
           stripeSubscriptionId: typeof cs.subscription === "string" ? cs.subscription : null,
         },
+      });
+    } else {
+      // Unknown one-off purchase — log and ignore rather than guess.
+      console.warn("[stripe] checkout.session.completed with unknown purchase type", {
+        purchase,
+        mode: cs.mode,
+        sessionId: cs.id,
       });
     }
   }

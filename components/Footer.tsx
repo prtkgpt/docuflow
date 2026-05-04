@@ -54,6 +54,7 @@ const COLUMNS = [
     links: [
       { label: "About", href: "/about" },
       { label: "Pricing", href: "/pricing" },
+      { label: "Tip the kitty 🐱", href: "/tip" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
       { label: "Contact", href: `mailto:${SITE.email}` },

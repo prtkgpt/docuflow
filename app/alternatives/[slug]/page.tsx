@@ -7,7 +7,11 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { Button } from "@/components/ui/button";
 import { ToolCard } from "@/components/ToolCard";
+import { AffiliateLink } from "@/components/AffiliateLink";
+import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
+import { TipJar } from "@/components/TipJar";
 import { findTool } from "@/lib/tools";
+import { findPartner, isAffiliate } from "@/lib/affiliates";
 import { ALTERNATIVES, findAlternative } from "@/lib/alternatives";
 import {
   buildMetadata,
@@ -228,16 +232,40 @@ export default function AlternativePage({ params }: { params: { slug: string } }
           </section>
         )}
 
-        {/* Outbound link with rel attributes */}
-        <p className="mt-12 text-xs text-slate-500">
-          {a.competitor} is a trademark of its respective owner. This page is an independent comparison
-          and is not affiliated with or endorsed by {a.competitor}. Visit the official site at{" "}
-          <a href={a.competitorUrl} rel="nofollow noreferrer" target="_blank" className="underline inline-flex items-center gap-1">
-            {a.competitorUrl.replace(/^https?:\/\//, "")}
-            <ExternalLink className="h-3 w-3" />
-          </a>
-          .
-        </p>
+        {/* Tip jar — captures users who liked the comparison but aren't ready to subscribe */}
+        <section className="mt-16 grid gap-6 md:grid-cols-2 items-start">
+          <TipJar variant="card" source={`alternatives-${a.slug}`} />
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 className="font-semibold">Still considering {a.competitor}?</h3>
+            <p className="mt-2 text-sm text-slate-700">
+              We're not the right fit for everyone. If you&apos;re leaning toward {a.competitor}, here&apos;s the
+              direct link to their official site — no offense taken.
+            </p>
+            {findPartner(a.slug) ? (
+              <div className="mt-3">
+                <AffiliateLink partner={a.slug} className="text-sm font-medium text-brand-700 underline">
+                  Visit {a.competitor}
+                </AffiliateLink>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm">
+                <a href={a.competitorUrl} rel="nofollow noreferrer" target="_blank" className="text-brand-700 underline inline-flex items-center gap-1">
+                  Visit {a.competitor}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Outbound link with rel attributes + FTC disclosure */}
+        <div className="mt-10 space-y-3 text-xs text-slate-500">
+          <p>
+            {a.competitor} is a trademark of its respective owner. This page is an independent comparison
+            and is not affiliated with or endorsed by {a.competitor}.
+          </p>
+          {findPartner(a.slug) && isAffiliate(findPartner(a.slug)!) && <AffiliateDisclosure />}
+        </div>
       </main>
       <Footer />
     </>
