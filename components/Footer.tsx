@@ -42,6 +42,7 @@ const COLUMNS = [
     title: "Resources",
     links: [
       { label: "All free tools", href: "/tools/free" },
+      { label: "PDF use cases", href: "/use-cases" },
       { label: "Blog", href: "/blog" },
       { label: "Best PDF tools", href: "/compare/best-free-pdf-tools" },
       { label: "AI use cases", href: "/ai-use-cases" },

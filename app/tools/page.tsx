@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ToolGrid } from "@/components/ToolGrid";
@@ -32,6 +34,20 @@ export default function ToolsPage() {
           </p>
         </div>
         <div className="mt-10"><ToolGrid /></div>
+
+        <Link
+          href="/use-cases"
+          className="mt-12 block rounded-2xl border border-slate-200 bg-gradient-to-r from-brand-50 to-white p-6 hover:border-brand-300 transition"
+        >
+          <p className="text-xs font-medium uppercase tracking-wide text-brand-700">Use-case guides</p>
+          <p className="mt-1 text-xl font-bold inline-flex items-center gap-2">
+            Looking for a specific scenario?
+            <ArrowRight className="h-5 w-5" />
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            Compress for email, merge for resume, sign an NDA, send a contract — guides tuned to the actual task.
+          </p>
+        </Link>
       </main>
       <Footer />
     </>
