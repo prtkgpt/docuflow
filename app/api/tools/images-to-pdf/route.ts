@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const { fileIds } = Body.parse(await req.json());
     const images: { buffer: Buffer; mimeType: string }[] = [];
     for (const id of fileIds) {
-      const { file, buffer } = await loadFile(id);
+      const { file, buffer } = await loadFile(id, userId);
       if (!file.mimeType.startsWith("image/")) {
         return NextResponse.json({ error: `File "${file.originalName}" is not an image.` }, { status: 400 });
       }

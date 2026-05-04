@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Make sure the file's chunks exist; build them once and reuse forever.
-    const { file, buffer } = await loadFile(fileId);
+    const { file, buffer } = await loadFile(fileId, userId);
     let chunkRows = await prisma.pdfChunk.findMany({
       where: { fileId: file.id },
       orderBy: { index: "asc" },

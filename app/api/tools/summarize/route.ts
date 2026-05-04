@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { file, buffer } = await loadFile(fileId);
+    const { file, buffer } = await loadFile(fileId, userId);
     const { text } = await extractPdfText(buffer);
     if (!text || text.trim().length < 30) {
       return NextResponse.json({

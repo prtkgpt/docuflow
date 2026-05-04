@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   try {
     const { fileId } = Body.parse(await req.json());
-    const { file, buffer } = await loadFile(fileId);
+    const { file, buffer } = await loadFile(fileId, userId);
     const doc = await PDFDocument.load(toUint8(buffer), { ignoreEncryption: true });
     const out = await doc.save({ useObjectStreams: true, addDefaultPage: false });
     const baseName = file.originalName.replace(/\.[^.]+$/, "");

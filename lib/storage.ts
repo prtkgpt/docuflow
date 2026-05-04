@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { randomUUID } from "crypto";
+import { randomBytes } from "crypto";
 
 // Storage abstraction so we can swap providers without changing call sites.
 // Configure UPLOAD_STORAGE_PROVIDER in env: "local" | "vercel-blob" | "s3".
@@ -34,7 +34,12 @@ export async function saveBuffer(
   // We use a path of `<unique>/<readable-name>` so that when the file is
   // downloaded later, the browser uses the final segment as the suggested
   // filename. This way users see "invoice.pdf" instead of a UUID.
-  const unique = `${Date.now()}-${randomUUID().slice(0, 8)}`;
+  //
+  // The random portion is 32 hex chars (128 bits of entropy) so the path
+  // itself is effectively unguessable — same security model as Vercel Blob
+  // URLs. This matters for anonymous uploads where no ownership ACL exists;
+  // the unguessable path is the security boundary.
+  const unique = `${Date.now()}-${randomBytes(16).toString("hex")}`;
   const filename = safeFilename(originalName, mimeType.includes("pdf") ? ".pdf" : ".bin");
   const storedName = `${unique}/${filename}`;
 

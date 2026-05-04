@@ -5,6 +5,7 @@ import { applySignedEnvelope } from "@/lib/envelopes/render";
 import { saveBuffer } from "@/lib/storage";
 import { sendEmail, envelopeCompletedHtml } from "@/lib/email";
 import { absoluteUrl } from "@/lib/site";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -116,6 +117,16 @@ const DeclineBody = z.object({
 });
 
 export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
+  // 30 sign/decline attempts per IP per 5 min — well above legitimate
+  // signer behavior, well below what would let someone brute-force.
+  const rl = checkRateLimit(req, "sign-submit", 30, 5 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests — try again in a few minutes." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+    );
+  }
+
   const recipient = await loadByToken(params.token);
   if (!recipient || recipient.envelope.deletedAt) {
     return NextResponse.json({ error: "This signing link is no longer valid." }, { status: 404 });

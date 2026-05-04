@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   try {
     const { fileId } = Body.parse(await req.json());
-    const { file, buffer } = await loadFile(fileId);
+    const { file, buffer } = await loadFile(fileId, userId);
     const out = await pdfToExcel(buffer);
     const baseName = file.originalName.replace(/\.[^.]+$/, "");
     const result = await persistOutput({

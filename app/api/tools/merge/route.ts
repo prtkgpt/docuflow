@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const { fileIds } = Body.parse(await req.json());
     const buffers: Buffer[] = [];
     for (const id of fileIds) {
-      const { buffer } = await loadFile(id);
+      const { buffer } = await loadFile(id, userId);
       buffers.push(buffer);
     }
     const out = await mergePdfs(buffers);

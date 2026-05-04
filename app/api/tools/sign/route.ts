@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   try {
     const data = Body.parse(await req.json());
-    const { buffer } = await loadFile(data.fileId);
+    const { buffer } = await loadFile(data.fileId, userId);
     const out = await signPdf(buffer, data.signature, { ...data.placement, page: data.page });
     const result = await persistOutput({
       userId,

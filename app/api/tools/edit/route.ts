@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   try {
     const { fileId, annotations, pageOps } = Body.parse(await req.json());
-    const { buffer } = await loadFile(fileId);
+    const { buffer } = await loadFile(fileId, userId);
 
     // Normalize the rotate map keys back to numbers
     let normalizedOps: PageOps | undefined;

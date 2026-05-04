@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   try {
     const { fileId, ranges } = Body.parse(await req.json());
-    const { buffer } = await loadFile(fileId);
+    const { buffer } = await loadFile(fileId, userId);
     const out = await splitPdf(buffer, ranges);
     const result = await persistOutput({
       userId,

@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { SITE } from "@/lib/site";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,17 @@ const Body = z.object({
 // One-time tip payment via Stripe Checkout. Uses ad-hoc price_data so we
 // don't need a separate Stripe Price for every preset amount.
 export async function POST(req: NextRequest) {
+  // Cap to 10 tip-checkout creations per IP per hour. Each Stripe Checkout
+  // creation is a billable API call — without this, a script could burn
+  // through our Stripe rate limits or rack up gratuitous usage.
+  const rl = checkRateLimit(req, "tip", 10, 60 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many tip attempts — try again in a bit." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+    );
+  }
+
   try {
     const { amountCents, message } = Body.parse(await req.json());
 

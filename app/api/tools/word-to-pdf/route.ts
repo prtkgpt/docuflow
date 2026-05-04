@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   try {
     const { fileId } = Body.parse(await req.json());
-    const { file, buffer } = await loadFile(fileId);
+    const { file, buffer } = await loadFile(fileId, userId);
     if (!ALLOWED_TYPES.has(file.mimeType) && !/\.docx?$/i.test(file.originalName)) {
       return NextResponse.json(
         { error: `"${file.originalName}" doesn't look like a Word document. Please upload a .doc or .docx file.` },

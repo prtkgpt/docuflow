@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   try {
     const { fileId, ranges, angle } = Body.parse(await req.json());
-    const { buffer } = await loadFile(fileId);
+    const { buffer } = await loadFile(fileId, userId);
     const isCompressPlaceholder = angle === 0;
     const out = isCompressPlaceholder
       ? new Uint8Array(buffer)
