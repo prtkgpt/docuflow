@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/site";
 import { BLOG_POSTS } from "@/lib/blog";
 import { COMPARISONS } from "@/lib/compare";
+import { ALTERNATIVES } from "@/lib/alternatives";
 import { LANGUAGES } from "@/lib/i18n/languages";
 import { prisma } from "@/lib/db";
 
@@ -38,6 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/tools/free", priority: 0.95, changeFreq: "weekly" },
     { path: "/blog", priority: 0.7, changeFreq: "weekly" },
     { path: "/compare", priority: 0.7, changeFreq: "monthly" },
+    { path: "/alternatives", priority: 0.8, changeFreq: "monthly" },
     { path: "/pricing", priority: 0.8, changeFreq: "monthly" },
     { path: "/about", priority: 0.4, changeFreq: "yearly" },
     { path: "/security", priority: 0.5, changeFreq: "yearly" },
@@ -76,6 +78,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.6,
+    })),
+    ...ALTERNATIVES.map((a) => ({
+      url: absoluteUrl(`/alternatives/${a.slug}`),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.75,
     })),
     // Language-pair landing pages — every non-English language gets two
     // dedicated URLs (X→English and English→X). 24 × 2 = 48 pages.

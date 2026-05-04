@@ -28,6 +28,17 @@ const COLUMNS = [
     ],
   },
   {
+    title: "Alternatives",
+    links: [
+      { label: "DocuSign alternative", href: "/alternatives/docusign" },
+      { label: "Smallpdf alternative", href: "/alternatives/smallpdf" },
+      { label: "iLovePDF alternative", href: "/alternatives/ilovepdf" },
+      { label: "Adobe Acrobat alternative", href: "/alternatives/adobe-acrobat" },
+      { label: "PDFfiller alternative", href: "/alternatives/pdffiller" },
+      { label: "All alternatives", href: "/alternatives" },
+    ],
+  },
+  {
     title: "Resources",
     links: [
       { label: "All free tools", href: "/tools/free" },
@@ -52,7 +63,7 @@ const COLUMNS = [
 export function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-slate-50/60">
-      <div className="container py-12 grid gap-10 md:grid-cols-5">
+      <div className="container py-12 grid gap-10 md:grid-cols-3 lg:grid-cols-6">
         <div className="md:col-span-1">
           <Link href="/" className="flex items-center gap-2">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-white">
