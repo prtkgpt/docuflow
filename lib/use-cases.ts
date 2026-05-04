@@ -837,6 +837,825 @@ export const USE_CASES: UseCase[] = [
     related: ["sign-pdf-nda", "pdf-to-word-without-losing-formatting", "compress-pdf-for-upload"],
     ctaLabel: "Fill out your PDF form",
   },
+  // -----------------------------------------------------------------------
+  // Round 2 — twelve more high-intent scenarios
+  // -----------------------------------------------------------------------
+
+  // Redact PDF
+  {
+    slug: "redact-pdf",
+    parentToolSlug: "edit-pdf",
+    parentToolHref: "/tools/edit-pdf",
+    category: "Edit PDF",
+    h1: "Redact a PDF — Permanently Hide Sensitive Info",
+    metaTitle: "Redact PDF Online Free | Permanently Black Out Text | MyPDFKitty",
+    metaDescription:
+      "Redact a PDF to permanently hide names, SSNs, account numbers, or any sensitive info. Black-box redactions that survive copy-paste and OCR.",
+    intro:
+      "Redacting a PDF means permanently removing sensitive information — not just covering it with a black rectangle that anyone can move out of the way in Acrobat. Real redaction strips the underlying text and the visible glyphs, so even copy-paste, search, and OCR-on-the-redacted-file can't recover the hidden data. This is what you need before sharing contracts, court filings, financial records, or anything covered by HIPAA, GDPR, or attorney-client privilege.",
+    whatToKnow: [
+      {
+        title: "Real redaction vs. fake redaction",
+        body: "Fake: drawing a black rectangle over text in a regular PDF editor. The text underneath stays in the file — courts have caught lawyers exposing client SSNs because their 'redactions' were just shapes. Real: the text is removed from the underlying PDF and replaced with a solid black region. Our redact tool does the second.",
+      },
+      {
+        title: "What you should redact",
+        body: "Social Security numbers, full credit-card numbers, bank account numbers, dates of birth, home addresses (in court filings), names of minors, medical records (HIPAA), client identifiers (attorney-client), and trade secrets in contracts shared with vendors.",
+      },
+      {
+        title: "Redaction is irreversible",
+        body: "Once you save a redacted PDF, you can't recover the hidden text — even from your own file. Always keep the original (un-redacted) PDF in a secure location separately. Name the redacted version clearly: 'Smith_Contract_REDACTED.pdf'.",
+      },
+      {
+        title: "Don't forget metadata",
+        body: "PDF metadata (Author, Title, Comments) often contains identifiers that survive redaction. Our tool strips metadata on save by default, but double-check by opening File → Properties in Acrobat or Preview after redacting.",
+      },
+    ],
+    steps: [
+      { name: "Upload the PDF", text: "Drop the file containing the sensitive info." },
+      { name: "Mark the redactions", text: "Drag boxes over names, numbers, addresses — anything you need to hide. Each becomes a redaction marker." },
+      { name: "Apply", text: "We strip the underlying text and burn the black region into the PDF. The text is gone, not just covered." },
+      { name: "Verify and save", text: "Save the redacted PDF. Open it again and try to copy text from the redacted regions — should produce nothing." },
+    ],
+    tips: [
+      "After applying redactions, run the PDF through Find (Ctrl/Cmd+F) and search for any sensitive term you redacted. If it returns hits, redaction failed — start over.",
+      "For court filings, follow the court's specific redaction rules — some require the redacted text to be replaced with [REDACTED] tags rather than blackboxes.",
+      "Redact, then compress. Order matters — compressing first can rasterize text, which makes redaction harder to verify.",
+      "For high-stakes redactions (litigation, regulatory filings), have a colleague verify the output independently before sending.",
+    ],
+    faq: [
+      {
+        q: "Can someone recover redacted text?",
+        a: "Not from a properly redacted PDF — the text is removed from the underlying document, not just covered. Black-box overlays in basic editors can be moved aside; real redactions can't.",
+      },
+      {
+        q: "Does redaction work on scanned PDFs?",
+        a: "Yes — redacting a scan blacks out the image region. Run OCR before sharing if the PDF needs to be searchable, then redact the OCR'd text.",
+      },
+      {
+        q: "Is this OK for HIPAA / GDPR compliance?",
+        a: "Real redaction removes the underlying data, which satisfies the technical bar for HIPAA and GDPR. You're still responsible for the broader compliance program (consent, breach notification, data retention).",
+      },
+      {
+        q: "Can I redact text in multiple PDFs at once?",
+        a: "Pro and Business plans include batch processing. Free and Plus process one file at a time.",
+      },
+      {
+        q: "What about metadata and hidden text?",
+        a: "We strip standard PDF metadata (Author, Title, Comments) on save. For maximum safety, also remove document-level annotations and bookmarks before sharing.",
+      },
+    ],
+    related: ["fill-out-pdf-form-online", "compress-pdf-for-upload", "send-contract-for-signature"],
+    ctaLabel: "Redact your PDF",
+  },
+
+  // Add page numbers
+  {
+    slug: "add-page-numbers-to-pdf",
+    parentToolSlug: "edit-pdf",
+    parentToolHref: "/tools/edit-pdf",
+    category: "Edit PDF",
+    h1: "Add Page Numbers to a PDF Online",
+    metaTitle: "Add Page Numbers to PDF Free Online | MyPDFKitty",
+    metaDescription:
+      "Add page numbers to a PDF in your browser — bottom right, bottom center, or any custom position. Style the format and start at any number.",
+    intro:
+      "Page numbers seem trivial until you need them on a 60-page report and you're trying to do it in Word. Print PDF, scan, give up. Adding page numbers to an existing PDF takes 10 seconds in our editor — pick a position (bottom-center is conventional), pick a format (1, 2, 3 or Page 1 of 60), pick a starting number, done.",
+    whatToKnow: [
+      {
+        title: "Where to put page numbers",
+        body: "Bottom-center is the most common (academic papers, reports, books). Bottom-right is common for legal filings and contracts. Top-right is common for technical documentation. Avoid bottom-left — it conflicts with margin notes in some templates.",
+      },
+      {
+        title: "Common formats",
+        body: "Plain: 1, 2, 3. With label: Page 1, Page 2. With total: Page 1 of 60. Roman numerals: i, ii, iii (used for prefatory matter — title page, TOC). Custom prefix: Section A.1, Section A.2 — useful for multi-section documents.",
+      },
+      {
+        title: "Skip pages or start mid-document",
+        body: "Title pages, TOCs, and acknowledgements are usually unnumbered or numbered with Roman numerals. We let you exclude specific pages or restart numbering at any page (e.g., Arabic 1 starts on page 5, the first page of Chapter 1).",
+      },
+      {
+        title: "Don't double-up",
+        body: "If your PDF already has page numbers (e.g., it was printed from Word with page numbers in the footer), adding more will produce two sets of page numbers. Remove the existing ones with our edit-pdf tool first, or skip the affected pages.",
+      },
+    ],
+    steps: [
+      { name: "Upload the PDF", text: "Drop your report, contract, or book draft." },
+      { name: "Pick position and format", text: "Bottom-center, bottom-right, top-right, etc. Format as 1, 2, 3 or Page 1 of N." },
+      { name: "Set starting page (optional)", text: "Start numbering on page 5 instead of page 1, or use Roman numerals for the first 4 pages." },
+      { name: "Apply and download", text: "Page numbers are written into the PDF and travel with the file." },
+    ],
+    tips: [
+      "Match your page-number font to the body text font when possible. Helvetica or Times in 10pt is standard.",
+      "For double-sided printing, use 'Page X of Y' so readers know how many pages remain.",
+      "Add a header/footer rule (a thin line) above page numbers in formal documents — looks more polished.",
+      "Save the original without page numbers in case you need to renumber later.",
+    ],
+    faq: [
+      {
+        q: "Can I number only pages 5–60 and leave 1–4 unnumbered?",
+        a: "Yes — exclude pages 1–4 in our numbering options. Common for reports with title page, TOC, etc.",
+      },
+      {
+        q: "How do I use Roman numerals for the front matter?",
+        a: "Apply numbering twice: pass 1 for pages 1–4 in Roman numerals (i, ii, iii, iv), pass 2 for pages 5+ in Arabic (1, 2, 3...).",
+      },
+      {
+        q: "Can I customize the page number font and color?",
+        a: "Yes — pick from common fonts (Helvetica, Times) and any color. Default is black 10pt Helvetica.",
+      },
+      {
+        q: "Will the page numbers print correctly?",
+        a: "Yes — they're embedded in the PDF as text, so they print exactly where you placed them.",
+      },
+      {
+        q: "Can I use 'Page X of Y' format?",
+        a: "Yes — pick the 'Page X of Y' template. Y is auto-set to your total page count.",
+      },
+    ],
+    related: ["fill-out-pdf-form-online", "merge-pdf-for-portfolio", "extract-pages-from-pdf"],
+    ctaLabel: "Add page numbers",
+  },
+
+  // Extract pages
+  {
+    slug: "extract-pages-from-pdf",
+    parentToolSlug: "split-pdf",
+    parentToolHref: "/tools/split-pdf",
+    category: "Split PDF",
+    h1: "Extract Pages from a PDF",
+    metaTitle: "Extract Pages from PDF Online Free | MyPDFKitty",
+    metaDescription:
+      "Pull specific pages from a PDF into a new file. Single page, page ranges, or non-contiguous pages — fast and free in your browser.",
+    intro:
+      "Extracting pages is useful when you only need a slice of a longer PDF — sending pages 5-10 of a 100-page contract for review, pulling just your tax form from a packet of statements, or grabbing the executive summary from a quarterly report. Drop the PDF, pick the pages, get a clean new PDF that contains only what you needed.",
+    whatToKnow: [
+      {
+        title: "Single, range, or non-contiguous",
+        body: "Pull just page 7. Pull pages 5–10 as a range. Pull pages 1, 3, 5, 12–15 as a non-contiguous set. We support all three patterns.",
+      },
+      {
+        title: "Original is preserved",
+        body: "Extracting doesn't modify the source PDF — you get a new file with the extracted pages. The original stays untouched in your workspace.",
+      },
+      {
+        title: "Order is preserved unless you reorder",
+        body: "Pages come out in the order you specified. If you list 5, 1, 7, the output PDF has page 5 first, then 1, then 7. Useful for re-sequencing.",
+      },
+      {
+        title: "Bookmarks and links",
+        body: "Internal links between extracted pages survive. Links to pages you didn't extract become broken — we strip them rather than leave dangling targets.",
+      },
+    ],
+    steps: [
+      { name: "Upload the PDF", text: "Drop the source file." },
+      { name: "Select the pages", text: "Type page numbers (e.g., '5, 7-12, 20') or click thumbnails to pick visually." },
+      { name: "Extract", text: "We assemble a new PDF with just those pages, preserving formatting and quality." },
+      { name: "Download", text: "Save the new PDF — usually much smaller than the original." },
+    ],
+    tips: [
+      "Use the thumbnail view if you don't remember exact page numbers — faster than counting.",
+      "If you're sending an extract for review, rename to 'Smith_Contract_pages-5-to-10.pdf' so the recipient knows what they're getting.",
+      "Extract first, then redact, then send — keeps your workflow tidy and avoids accidentally redacting in the original.",
+      "For very large PDFs (>100 pages), extract by section then merge if you need a custom selection.",
+    ],
+    faq: [
+      {
+        q: "What's the difference between extracting and splitting?",
+        a: "Splitting divides the PDF into multiple files (one per page or per range). Extracting pulls specific pages into a single new file. Same tool, different output settings.",
+      },
+      {
+        q: "Can I reorder pages while extracting?",
+        a: "Yes — list page numbers in any order, and the output PDF follows that order. Page 5 first, then page 1, then page 12 is fine.",
+      },
+      {
+        q: "Will extraction lower the quality?",
+        a: "No — extracted pages keep the original quality bit-for-bit. Same fonts, images, and dimensions.",
+      },
+      {
+        q: "Can I extract pages from a password-protected PDF?",
+        a: "Remove the password first using our unlock tool, then extract. We don't bypass passwords.",
+      },
+      {
+        q: "How many pages can I extract at once?",
+        a: "Any number, up to your plan's max upload size. Free 25 MB, Pro 250 MB.",
+      },
+    ],
+    related: ["remove-pages-from-pdf", "merge-pdf-for-resume", "compress-pdf-for-email"],
+    ctaLabel: "Extract pages from your PDF",
+  },
+
+  // Remove pages
+  {
+    slug: "remove-pages-from-pdf",
+    parentToolSlug: "split-pdf",
+    parentToolHref: "/workspace?tool=delete",
+    category: "Split PDF",
+    h1: "Remove Pages from a PDF",
+    metaTitle: "Remove Pages from PDF Online Free | MyPDFKitty",
+    metaDescription:
+      "Delete specific pages from a PDF — a single page, a range, or scattered pages. Free in your browser, no install.",
+    intro:
+      "Sometimes you don't want to extract a slice — you want to keep the whole PDF minus a few pages. Maybe page 3 has a typo and you have a corrected replacement. Maybe you scanned a 50-page document and the cover page came out blank. Removing pages is one click per page; the rest stays exactly as it was.",
+    whatToKnow: [
+      {
+        title: "Removing vs. extracting",
+        body: "Removing keeps everything except the pages you specify (subtract). Extracting keeps only the pages you specify (additive). Same tool, opposite mode.",
+      },
+      {
+        title: "What gets recalculated",
+        body: "Page numbers shift after removal — page 4 becomes page 3 if you deleted page 1. If your PDF has internal page references ('see page 8'), those become incorrect. Use the edit-pdf tool to fix references after removal.",
+      },
+      {
+        title: "Bookmarks and TOC",
+        body: "Bookmarks pointing to removed pages are dropped. The TOC's page numbers are static text and need manual update if your TOC was already in the PDF.",
+      },
+      {
+        title: "When to use the editor instead",
+        body: "If you're removing pages because they have errors (typos, wrong figures), consider editing the page directly with our edit-pdf tool. Faster than removing + re-inserting a corrected page.",
+      },
+    ],
+    steps: [
+      { name: "Upload the PDF", text: "Drop the source file." },
+      { name: "Select pages to remove", text: "Click thumbnails to mark pages for deletion, or type page numbers." },
+      { name: "Apply", text: "We rebuild the PDF without those pages, preserving everything else." },
+      { name: "Download", text: "Save the smaller PDF." },
+    ],
+    tips: [
+      "Always keep the original — once removed, pages are gone from the new file. Original PDF stays in your workspace.",
+      "Remove first, then add page numbers if needed — page numbers will reflect the new sequence.",
+      "If you're cleaning up a big PDF (deleting blank scan pages, ad pages, etc.), use thumbnail view and delete in batches.",
+      "After removing pages from a contract or legal doc, double-check the page references in the body still make sense.",
+    ],
+    faq: [
+      {
+        q: "Can I remove every other page?",
+        a: "Yes — list the even or odd page numbers (2, 4, 6, ... or 1, 3, 5, ...) in the remove list.",
+      },
+      {
+        q: "Will the file get smaller?",
+        a: "Yes, proportional to how many pages you removed. A 100-page PDF with 20 removed becomes ~80% the size, give or take.",
+      },
+      {
+        q: "Can I undo a removal?",
+        a: "The new PDF is a separate file. Your original stays in your workspace untouched, so you can always start over.",
+      },
+      {
+        q: "Does removing pages re-flow the layout?",
+        a: "No — each remaining page is preserved exactly as it was. Only the page sequence changes.",
+      },
+      {
+        q: "What about embedded form fields?",
+        a: "Form fields on remaining pages stay functional. Form fields on removed pages disappear with the page.",
+      },
+    ],
+    related: ["extract-pages-from-pdf", "add-page-numbers-to-pdf", "compress-pdf-for-email"],
+    ctaLabel: "Remove pages from your PDF",
+  },
+
+  // PDF to Word — resume use case
+  {
+    slug: "pdf-to-word-resume",
+    parentToolSlug: "pdf-to-word",
+    parentToolHref: "/tools/pdf-to-word",
+    category: "PDF to Word",
+    h1: "Convert PDF Resume to Word — Editable, ATS-Friendly",
+    metaTitle: "Convert PDF Resume to Word Free | ATS Friendly | MyPDFKitty",
+    metaDescription:
+      "Convert your PDF resume to an editable Word document. Preserves bullets, headers, and ATS-friendly formatting. Free in your browser.",
+    intro:
+      "You have a PDF resume that you want to update — maybe add a new job, tweak a bullet, or tailor for a specific role. Editing PDF directly is awkward; round-tripping to Word is the obvious move. The trick is keeping the layout intact: bullets aligned, headers bold, contact info on top. Our PDF-to-Word converter is tuned for resume layouts.",
+    whatToKnow: [
+      {
+        title: "What converts cleanly",
+        body: "Single-column resumes with section headers (Experience, Education, Skills): clean conversion. Two-column resumes with sidebars: usually clean, sometimes columns swap order. Bullet lists: preserved as bullet lists. Bold text: preserved. Italics: preserved.",
+      },
+      {
+        title: "What needs cleanup",
+        body: "Custom fonts (e.g., Calibri Light → substituted with closest match). Heavy graphic elements (full-width header bands, icon bullets). Photos: preserved as embedded images. Tables: preserved but cell merging may need fixing.",
+      },
+      {
+        title: "ATS implications",
+        body: "When you re-export the edited Word back to PDF, the result stays ATS-friendly as long as you didn't add tables or text boxes during editing. Most ATS systems prefer linear text — sections in order, top to bottom.",
+      },
+      {
+        title: "When to start over instead",
+        body: "If your PDF was originally a fancy designer resume (Canva, Figma, custom InDesign), the Word conversion will look messy. In that case, copy the text into a clean Word resume template — faster than fixing layout.",
+      },
+    ],
+    steps: [
+      { name: "Upload your resume PDF", text: "Drop the file. Resumes are usually under 1 MB." },
+      { name: "Convert", text: "We extract text, headers, and bullets in reading order." },
+      { name: "Open in Word", text: "Edit in Microsoft Word, Google Docs, or LibreOffice. Make changes." },
+      { name: "Save back to PDF", text: "Export the edited Word doc back to PDF for your application." },
+    ],
+    tips: [
+      "Open the converted Word doc in Google Docs (free) if you don't have Microsoft Word — formatting is preserved.",
+      "Keep your resume to one page if you have <10 years experience, two pages for senior roles.",
+      "Avoid adding tables or text boxes during editing — both can confuse ATS parsers.",
+      "Re-export to PDF before applying — Word .docx is fine for some applications but PDF is universal.",
+    ],
+    faq: [
+      {
+        q: "Will the converted Word doc look identical to my PDF?",
+        a: "Close, not exact. Custom fonts substitute. Layout is preserved for typical resume templates. Expect 2–3 minutes of cleanup.",
+      },
+      {
+        q: "Will ATS still parse my resume after the round-trip?",
+        a: "Yes — as long as text stays as text (it will, with our converter). Avoid adding tables / text boxes during your Word edit.",
+      },
+      {
+        q: "What if my resume is a scan?",
+        a: "Run OCR PDF first to extract the text, then convert the OCR'd PDF to Word.",
+      },
+      {
+        q: "Can I edit it in Google Docs?",
+        a: "Yes — .docx imports fully into Google Docs with all editable text and formatting.",
+      },
+      {
+        q: "How do I keep my resume looking professional after editing?",
+        a: "Use a single, common font (Calibri, Arial, Helvetica). Keep margins consistent. Don't add color or graphics that won't survive ATS conversion.",
+      },
+    ],
+    related: ["merge-pdf-for-resume", "pdf-to-word-without-losing-formatting", "compress-pdf-for-upload"],
+    ctaLabel: "Convert your resume to Word",
+  },
+
+  // OCR + convert combo
+  {
+    slug: "convert-scanned-pdf-to-word",
+    parentToolSlug: "ocr-pdf",
+    parentToolHref: "/tools/ocr-pdf",
+    category: "OCR PDF",
+    h1: "Convert Scanned PDF to Word — Editable Text via OCR",
+    metaTitle: "Convert Scanned PDF to Word Free | OCR + Edit | MyPDFKitty",
+    metaDescription:
+      "Convert a scanned PDF (image-only) into an editable Word document via OCR. 25 languages supported, free in your browser.",
+    intro:
+      "Scanned PDFs are images of pages — there's no actual text inside, just pixels. Trying to convert one directly to Word produces a Word doc with image objects, not editable text. The fix is OCR (optical character recognition): turn the images of text into real text first, then convert. Both happen in the browser, no install.",
+    whatToKnow: [
+      {
+        title: "How to tell if your PDF is scanned",
+        body: "Open the PDF and try to select text with your cursor. If the cursor only selects whole pages (not individual letters), it's scanned. If you can highlight specific words, it's already text.",
+      },
+      {
+        title: "OCR language matters",
+        body: "Tesseract (the OCR engine) needs the right language model to read your document. We support 25 languages including English, Spanish, French, German, Chinese (Simplified + Traditional), Japanese, Korean, Arabic, Hindi, Russian, Portuguese, and more. Pick the language(s) your document is written in.",
+      },
+      {
+        title: "Quality of the scan affects accuracy",
+        body: "Clean, high-resolution scans (300 DPI) give 99%+ OCR accuracy. Phone-camera scans of paper can be messy (skew, lighting, fingers in frame) and drop to 90–95%. For best results, scan flat with good lighting or use a scanner app like Adobe Scan or CamScanner.",
+      },
+      {
+        title: "Two-step process",
+        body: "Step 1: OCR PDF turns the scan into a searchable PDF (image + invisible text layer). Step 2: PDF-to-Word converts that searchable PDF to .docx. Some users only need step 1 — a searchable PDF is editable in our editor and acceptable for most workflows.",
+      },
+    ],
+    steps: [
+      { name: "Upload the scanned PDF", text: "Drop your scan." },
+      { name: "Pick OCR languages", text: "English by default. Add other languages if your document is multilingual." },
+      { name: "Run OCR", text: "We extract text from each page and layer it onto the original (invisible to viewers but selectable and searchable)." },
+      { name: "Convert to Word", text: "From the OCR'd PDF, run our PDF-to-Word converter to get an editable .docx." },
+    ],
+    tips: [
+      "If your scan has multiple languages (English + Spanish, etc.), select both — Tesseract handles multilingual OCR well.",
+      "For receipts, IDs, and forms with small text, scan at 300 DPI minimum. 600 DPI is overkill for most cases.",
+      "If OCR misreads specific words consistently (a custom name, technical term), add a manual fix in Word after conversion.",
+      "For sensitive scans (tax docs, IDs), consider redacting in our edit-pdf tool before OCR if you're sharing with others.",
+    ],
+    faq: [
+      {
+        q: "How accurate is the OCR?",
+        a: "99%+ for clean printed text at 300 DPI, 90–95% for phone-camera scans. Handwriting accuracy is much lower (~70%) and depends heavily on the writer's clarity.",
+      },
+      {
+        q: "Can I OCR a handwritten document?",
+        a: "Tesseract supports handwriting recognition for printed-style handwriting (most clear adult handwriting). Cursive is harder. Expect 60–80% accuracy on neat handwriting, lower on messy.",
+      },
+      {
+        q: "What languages do you support?",
+        a: "25 languages including English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Polish, Turkish, Arabic, Hindi, Bengali, Chinese (Simplified + Traditional), Japanese, Korean, Vietnamese, Thai, and more.",
+      },
+      {
+        q: "Will the Word document look like the scan?",
+        a: "Layout is approximated — paragraphs reflow into normal Word formatting. Headers and bullets are usually detected. Heavy graphic layouts (newspaper-style) may need manual cleanup.",
+      },
+      {
+        q: "Can I OCR multi-page PDFs?",
+        a: "Yes — OCR runs on every page. Free plan up to 25 MB; Pro plan up to 250 MB.",
+      },
+    ],
+    related: ["pdf-to-word-without-losing-formatting", "pdf-to-word-resume", "redact-pdf"],
+    ctaLabel: "OCR + convert your scan",
+  },
+
+  // Sign on Mac
+  {
+    slug: "sign-pdf-on-mac",
+    parentToolSlug: "sign-pdf",
+    parentToolHref: "/tools/sign-pdf",
+    category: "Sign PDF",
+    h1: "Sign a PDF on Mac — Faster Than Preview",
+    metaTitle: "Sign PDF on Mac Free | Better Than Preview | MyPDFKitty",
+    metaDescription:
+      "Sign PDFs on Mac without Preview's quirks. Browser-based, draws on trackpad, works on macOS Sonoma, Sequoia, and any Mac with a modern browser.",
+    intro:
+      "macOS Preview has built-in PDF signing — it's fine for one-page personal stuff but it nags you to use Continuity Camera, sometimes saves signatures in places you don't want, and has limited control over signature placement. Our browser-based signer works in Safari, Chrome, or Firefox on any Mac, lets you draw with the trackpad or upload a saved signature image, and outputs a clean PDF without macOS-specific metadata.",
+    whatToKnow: [
+      {
+        title: "Preview vs. our signer",
+        body: "Preview: built-in, fastest for a one-off signature on a one-page PDF you're emailing back. Our signer: better for multi-page contracts, multiple fields per page, sending to others for signature, or sharing a signed PDF that doesn't reveal you're on macOS.",
+      },
+      {
+        title: "Trackpad signatures work great",
+        body: "Modern Mac trackpads have high pressure sensitivity, so finger or stylus drawing produces a natural-looking signature. Apple Pencil + iPad mirroring (Sidecar) gives you the cleanest signature possible.",
+      },
+      {
+        title: "Continuity Camera for handwritten",
+        body: "If you have an iPhone nearby, you can sign on paper, snap a photo via macOS Continuity Camera, and use that image as a signature. Save it once, reuse it anywhere.",
+      },
+      {
+        title: "Privacy",
+        body: "Files are uploaded to your private workspace, encrypted in transit and at rest, auto-deleted on free plans after processing. We don't read or store your signature image beyond the active session.",
+      },
+    ],
+    steps: [
+      { name: "Open in Safari/Chrome/Firefox", text: "Skip Preview — open mypdfkitty.com directly." },
+      { name: "Upload your PDF", text: "Drop the contract or click to upload from Finder, iCloud Drive, or Desktop." },
+      { name: "Sign", text: "Type, draw with the trackpad, or upload a signature image. Drag the signature onto the right page and resize." },
+      { name: "Download", text: "Save the signed PDF — usually to Downloads. Drag into your reply email or send via Mail." },
+    ],
+    tips: [
+      "Use your trackpad if you don't have a stylus — modern Mac trackpads are great for drawing.",
+      "If you sign documents often, draw your signature once, take a screenshot of just the signature region, and save it as 'signature.png'. Reuse that image — every signature looks identical.",
+      "Keep a small library of signatures (initials, full name, business name) in a 'Signatures' folder for quick reuse.",
+      "For multi-page contracts that need initials on every page, drop initials fields on each page in our editor.",
+    ],
+    faq: [
+      {
+        q: "Why not just use Preview?",
+        a: "For a one-off, Preview is fine. For multi-page contracts, multiple recipients, or reusable signatures across many documents, our tool is faster and gives you more control.",
+      },
+      {
+        q: "Does it work on older Macs?",
+        a: "Yes — works in any modern browser (Safari 15+, Chrome, Firefox) on macOS Mojave and later.",
+      },
+      {
+        q: "Can I use Apple Pencil on Mac?",
+        a: "Indirectly via Sidecar (mirror your Mac to iPad and use Pencil). Apple Pencil isn't natively supported on Mac trackpad/screen.",
+      },
+      {
+        q: "Is the signed PDF the same legal weight as a Preview signature?",
+        a: "Yes — both are standard electronic signatures under U.S. ESIGN Act. The signing tool doesn't affect legality.",
+      },
+      {
+        q: "Where does the signed PDF go?",
+        a: "Downloads folder by default. You can also save to iCloud Drive or any other location via the browser's save dialog.",
+      },
+    ],
+    related: ["sign-pdf-on-iphone", "sign-pdf-nda", "send-nda-for-signature"],
+    ctaLabel: "Sign your PDF on Mac",
+  },
+
+  // Sign on Android
+  {
+    slug: "sign-pdf-on-android",
+    parentToolSlug: "sign-pdf",
+    parentToolHref: "/tools/sign-pdf",
+    category: "Sign PDF",
+    h1: "Sign a PDF on Android — In Chrome, No App",
+    metaTitle: "Sign PDF on Android Free | No App Install | MyPDFKitty",
+    metaDescription:
+      "Sign a PDF on Android without installing an app. Open in Chrome, draw with your finger, place the signature, download. Works on any Android phone or tablet.",
+    intro:
+      "Most Android PDF apps want a paid subscription, push ads, or require an account just to sign. Our browser-based signer works in Chrome on any Android phone or tablet, draws with your finger, and outputs a clean PDF — no install, no account, no in-app purchase modal. Open the page, upload, sign, download.",
+    whatToKnow: [
+      {
+        title: "Works in Chrome (and other browsers)",
+        body: "Chrome on Android handles PDFs and our signing canvas natively. Firefox, Brave, and Edge on Android also work. Samsung Internet works too with minor scrolling differences.",
+      },
+      {
+        title: "Drawing with finger",
+        body: "Touch sampling on modern Android (Pixel, Galaxy, OnePlus) is high enough that finger signatures look natural. For best results, hold the device landscape — wider canvas means more room for a flowing signature.",
+      },
+      {
+        title: "Stylus support",
+        body: "Samsung Galaxy Note / S Ultra users can use S-Pen for the cleanest signatures possible. Other styluses (third-party Bluetooth, capacitive) work too.",
+      },
+      {
+        title: "Where the signed PDF lands",
+        body: "Default Downloads folder. Open in Files app, share via Gmail / Drive / WhatsApp from there. Some browsers offer 'open with' options directly after download.",
+      },
+    ],
+    steps: [
+      { name: "Open Chrome", text: "Visit mypdfkitty.com in Chrome." },
+      { name: "Upload your PDF", text: "Tap 'Choose PDF' and pick the file from Files, Drive, or Photos." },
+      { name: "Sign with finger", text: "Tap the signature field, choose 'Draw', sign with your finger. Tap 'Type' if you'd rather type." },
+      { name: "Download", text: "Save to Downloads, then share via your usual app (Gmail, Drive, WhatsApp)." },
+    ],
+    tips: [
+      "Hold landscape — wider canvas, better signature.",
+      "Use S-Pen if you have a Galaxy Note / S Ultra. Cleanest output.",
+      "Disable autofill on the form field — Android sometimes pops up keyboard suggestions over the canvas.",
+      "Save your signed PDF to Drive immediately; some download managers compress files on the way to Downloads, which can degrade the signature.",
+    ],
+    faq: [
+      {
+        q: "Do I need to install an app?",
+        a: "No. Chrome (or any modern Android browser) handles everything.",
+      },
+      {
+        q: "Will the signature look good?",
+        a: "Yes — modern Android touch sampling is high enough for natural finger signatures. S-Pen gives the cleanest result.",
+      },
+      {
+        q: "Can I sign multi-page contracts?",
+        a: "Yes — flip pages and add signatures or initials wherever needed.",
+      },
+      {
+        q: "Is it legally binding?",
+        a: "Yes — same legal weight as desktop signing under U.S. ESIGN Act and EU eIDAS. Device doesn't matter.",
+      },
+      {
+        q: "What if the PDF is in my Gmail?",
+        a: "Tap the attachment to download to Files, then upload to our tool. Or tap-and-hold the attachment and pick 'Open in Chrome' if available.",
+      },
+    ],
+    related: ["sign-pdf-on-iphone", "sign-pdf-nda", "send-nda-for-signature"],
+    ctaLabel: "Sign your PDF on Android",
+  },
+
+  // Send rental agreement
+  {
+    slug: "send-rental-agreement-for-signature",
+    parentToolSlug: "send-for-signature",
+    parentToolHref: "/tools/send-for-signature",
+    category: "Send for signature",
+    h1: "Send a Rental Agreement for Signature — Landlords & Tenants",
+    metaTitle: "Send Rental Agreement for Signature Free | Lease Online | MyPDFKitty",
+    metaDescription:
+      "Send a rental agreement (lease) to tenants for online e-signature. Free up to 10/month, audit trail included, both parties get the signed PDF.",
+    intro:
+      "Sending a rental agreement to a new tenant should not require driving to a printer, paying for postage, or buying a $30/month DocuSign subscription. Drop the lease PDF, add the tenant(s) and yourself, drag signature fields, send. Tenants sign in their browser (no account needed), the fully-signed lease lands in everyone's inbox with an audit trail. Free up to 10 signatures per month.",
+    whatToKnow: [
+      {
+        title: "Lease basics every state requires",
+        body: "Names of all tenants and landlord, property address, term length (start and end date), monthly rent, security deposit amount, payment due date, late-fee policy, lead-paint disclosure (federal, properties built before 1978), and signatures from all parties. State-specific addenda may apply (CA: bedbug disclosure; NY: lead-paint window guards; FL: radon disclosure).",
+      },
+      {
+        title: "Both parties usually sign",
+        body: "Add yourself (landlord) as a recipient and the tenant(s) as additional recipients. For shared housing, add every adult tenant — courts treat all named tenants as jointly liable.",
+      },
+      {
+        title: "Co-signers and guarantors",
+        body: "Some leases require a guarantor (parent for student tenant, etc.). Add them as a third recipient with their own signature field. The guarantor's signature line typically reads 'Guarantor' rather than 'Tenant'.",
+      },
+      {
+        title: "Lease counts as a contract",
+        body: "Same legal framework as any e-signed contract — U.S. ESIGN Act and state Uniform Electronic Transactions Acts. Standard electronic signatures are enforceable for residential leases in all 50 states except in narrow Vermont edge cases.",
+      },
+    ],
+    steps: [
+      { name: "Upload the lease PDF", text: "Drop your lease — your own template, a state-specific blank lease, or one from your property management software." },
+      { name: "Add all parties", text: "You (landlord) + every adult tenant + any guarantors." },
+      { name: "Place signature and initials", text: "Signature on each party's signature line. If the lease requires initials on every page, drop initials fields on each page for each signer." },
+      { name: "Send", text: "Each party gets their private link. Track who's viewed and signed in your dashboard." },
+    ],
+    tips: [
+      "Set the envelope subject to '[Property Address] Lease — [Tenant Name]' so it's findable later.",
+      "Personal message: 'Hi Sarah, here's the lease for 123 Main St starting June 1. Standard 12-month terms — let me know if you have questions.'",
+      "If the lease has a security deposit form, include it in the same envelope as a separate document or merged together.",
+      "Save signed leases in cloud storage (Google Drive, Dropbox) named '[Property]_Lease_[Year]_[TenantLastName].pdf'.",
+    ],
+    faq: [
+      {
+        q: "Are e-signed leases legally binding?",
+        a: "Yes in all 50 states. Standard electronic signatures under the federal ESIGN Act and state Uniform Electronic Transactions Acts are enforceable for residential leases.",
+      },
+      {
+        q: "Do I need to print the signed lease?",
+        a: "No. The signed PDF with audit certificate is the legal record. Save digital copies; print only if your local government requires a paper copy on file.",
+      },
+      {
+        q: "What if the tenant won't sign electronically?",
+        a: "Send them the PDF, have them print, sign, scan, and email back. Then use our edit-pdf tool to merge their signed page into your master copy. Or honor their preference and meet in person.",
+      },
+      {
+        q: "Can I add multiple tenants to one envelope?",
+        a: "Yes — up to 10 recipients. Each gets their own signing link and assigned signature fields.",
+      },
+      {
+        q: "What about lease renewals?",
+        a: "Send the renewal lease as a new envelope. Each renewal is its own contract with its own signed copy and audit trail.",
+      },
+    ],
+    related: ["send-contract-for-signature", "send-nda-for-signature", "sign-pdf-nda"],
+    ctaLabel: "Send your lease for signature",
+  },
+
+  // Send waiver
+  {
+    slug: "send-waiver-for-signature",
+    parentToolSlug: "send-for-signature",
+    parentToolHref: "/tools/send-for-signature",
+    category: "Send for signature",
+    h1: "Send a Waiver for Signature — Gyms, Sports, Events",
+    metaTitle: "Send Waiver for Signature Free | Liability Release | MyPDFKitty",
+    metaDescription:
+      "Send liability waivers, release forms, and consent forms for online e-signature. Free up to 10/month — perfect for gyms, sports clubs, events, tours.",
+    intro:
+      "Liability waivers are the small business owner's best friend — they protect gyms, climbing walls, sports clubs, dance studios, tour operators, and event organizers from frivolous lawsuits. The hard part isn't writing the waiver; it's getting it signed before a participant walks in the door. Send the waiver via email, they sign in their browser, signed PDF lands in your inbox before they show up. No paper, no clipboard, no scanning.",
+    whatToKnow: [
+      {
+        title: "What a waiver typically covers",
+        body: "Acknowledgment of risks (specific to the activity), release of liability for the operator, indemnification (participant pays for their own injuries), assumption of risk by the participant, and an agreement to follow safety rules. Some include photo/video release as a bundled clause.",
+      },
+      {
+        title: "Minor participants need parent/guardian signature",
+        body: "Waivers signed by minors aren't enforceable. For under-18 participants, the parent or legal guardian must sign as the responsible party. Add the parent as the recipient (not the minor) and have the waiver describe the minor by name.",
+      },
+      {
+        title: "Group waivers vs. individual",
+        body: "For group activities (corporate retreat, sports league), send a separate envelope per participant — easier to track who hasn't signed and avoids one bad signature voiding the whole batch. For very large events, consider a kiosk-style intake instead.",
+      },
+      {
+        title: "Where to store signed waivers",
+        body: "Keep signed waivers for the duration of your activity's statute of limitations, typically 2–3 years post-activity in the U.S. (varies by state and activity type). Most operators keep waivers indefinitely.",
+      },
+    ],
+    steps: [
+      { name: "Upload your waiver", text: "Drop your standard waiver PDF (drafted by your lawyer or from your trade association template)." },
+      { name: "Add the participant", text: "For minors, add the parent/guardian and reference the minor by name in the waiver." },
+      { name: "Place fields", text: "Signature, date, and any required text fields (emergency contact, insurance info)." },
+      { name: "Send", text: "Participant gets a private link. Sign before they show up." },
+    ],
+    tips: [
+      "Pre-fill the activity date and location in the waiver before sending — saves time for the participant.",
+      "Use a clear envelope subject: '[Event Name] Waiver — Please Sign Before [Date]'.",
+      "Send waivers 24–48 hours before the activity. Day-of waivers leave you with no signature if the participant doesn't show.",
+      "For repeat customers, save the signed waiver in their CRM record so you don't re-send for every visit.",
+    ],
+    faq: [
+      {
+        q: "Are e-signed waivers legally enforceable?",
+        a: "Yes in most jurisdictions — same legal framework as any e-signed contract under U.S. ESIGN Act. Some courts give extra scrutiny to waivers (you can't waive certain rights like gross negligence), but the e-signature itself isn't the issue.",
+      },
+      {
+        q: "Can a parent sign for a minor?",
+        a: "Yes — parents/guardians can sign waivers on behalf of minor children for activities. The signed party is the parent, not the minor.",
+      },
+      {
+        q: "What about photo/video release in the same waiver?",
+        a: "Common — many activity waivers bundle photo/video release as a separate clause. We don't change that; it's part of your waiver document.",
+      },
+      {
+        q: "How do I send waivers to a group of 50?",
+        a: "Each waiver is its own envelope. Send 50 envelopes (or use our API when it ships in 2026 to script bulk sends). Free plan covers 10/month, Plus 50, Pro 200.",
+      },
+      {
+        q: "Should I consult a lawyer about my waiver?",
+        a: "Yes — waivers are state-specific and activity-specific. A trade association lawyer (e.g., for climbing gyms, IndoorSports Council) usually has battle-tested templates worth more than a generic online form.",
+      },
+    ],
+    related: ["send-contract-for-signature", "send-rental-agreement-for-signature", "send-nda-for-signature"],
+    ctaLabel: "Send your waiver for signature",
+  },
+
+  // Merge for loan application
+  {
+    slug: "merge-pdf-for-loan-application",
+    parentToolSlug: "merge-pdf",
+    parentToolHref: "/tools/merge-pdf",
+    category: "Merge PDF",
+    h1: "Merge PDF for Loan Application — Mortgage, Auto, Personal",
+    metaTitle: "Merge PDF for Loan Application Free | Mortgage, Auto | MyPDFKitty",
+    metaDescription:
+      "Combine pay stubs, W-2s, bank statements, and ID into a single PDF for loan applications. Most lenders cap at 10–25 MB. Free in your browser.",
+    intro:
+      "Loan applications expect a packet — pay stubs, W-2s, tax returns, bank statements, government ID, sometimes a letter of explanation. Lenders almost always want this as a single PDF, not 12 separate attachments. Merging in the right order matters: lender systems often parse the first few pages for borrower info, so the cover letter and ID go first, financial documents next, supporting docs last. Compress after merging if the file's over 10 MB.",
+    whatToKnow: [
+      {
+        title: "Standard order for mortgage applications",
+        body: "Page 1: cover letter / completed application form. Pages 2–3: government ID (driver's license front + back). Pages 4+: most recent 2 pay stubs, last 2 years' W-2s, last 2 months' bank statements, last 2 years' tax returns. Letters of explanation last.",
+      },
+      {
+        title: "Lender file size caps",
+        body: "Most major lenders (Chase, Wells Fargo, Quicken/Rocket): 10–25 MB. Most online lenders (SoFi, Lightstream, LendingClub): 5–10 MB. Local credit unions: often tighter, 5 MB. Compress aggressively after merging.",
+      },
+      {
+        title: "Don't merge separate borrower applications",
+        body: "If you and a co-borrower are both applying, each typically submits a separate packet. Don't merge spouse's documents into yours unless the lender explicitly asks for a combined file.",
+      },
+      {
+        title: "Privacy considerations",
+        body: "Loan packets contain SSNs, account numbers, and ID images. Use a private workspace (paid plan) so files aren't auto-deleted and you can re-download if the lender loses them. Never email the packet over an unencrypted channel.",
+      },
+    ],
+    steps: [
+      { name: "Drop documents in order", text: "Cover letter / app form first, ID next, pay stubs, W-2s, bank statements, tax returns, supporting docs last." },
+      { name: "Reorder if needed", text: "Drag thumbnails to swap positions. Remove duplicates or extra pages." },
+      { name: "Merge", text: "Single PDF with everything in lender-expected order." },
+      { name: "Compress for upload", text: "Most loan portals cap at 10 MB. Run compress-pdf-for-upload after merging if needed." },
+    ],
+    tips: [
+      "Name the merged file '[YourLastName]_Loan_Application_[Date].pdf' so the loan officer can identify it without opening.",
+      "Black out account numbers on bank statements EXCEPT the last 4 digits — most lenders only need the last 4 to verify the account.",
+      "If your packet exceeds the lender's cap after compression, split into 'Application' and 'Supporting Documents' and upload separately.",
+      "Keep the merged packet for your records. Loan officers sometimes lose docs during processing.",
+    ],
+    faq: [
+      {
+        q: "What's the standard loan packet file size?",
+        a: "Most packets are 5–15 MB. Bank statements with images bloat the file. If yours is over 25 MB, you have very high-res scans — compress aggressively.",
+      },
+      {
+        q: "Should I include both sides of my driver's license?",
+        a: "Yes — most lenders want both sides. Front + back as two separate pages or one combined page.",
+      },
+      {
+        q: "What about my co-borrower's docs?",
+        a: "Usually separate packets. Some lenders ask for a combined household packet — follow their specific instructions.",
+      },
+      {
+        q: "Can I redact account numbers?",
+        a: "Lenders need to verify accounts — don't redact account numbers, only consider redacting the rest of the digits except the last 4. Use our redact-pdf tool.",
+      },
+      {
+        q: "How do I send a packet over 25 MB?",
+        a: "Compress first. If still too big, the lender's portal usually has a way to split-upload. Or upload to their secure document portal (most have one).",
+      },
+    ],
+    related: ["merge-pdf-for-resume", "compress-pdf-for-upload", "redact-pdf"],
+    ctaLabel: "Merge your loan application",
+  },
+
+  // PDF to JPG high quality
+  {
+    slug: "pdf-to-jpg-high-quality",
+    parentToolSlug: "pdf-to-jpg",
+    parentToolHref: "/tools/pdf-to-jpg",
+    category: "PDF to JPG",
+    h1: "Convert PDF to JPG (High Quality) — 300 DPI",
+    metaTitle: "Convert PDF to JPG High Quality 300 DPI Free | MyPDFKitty",
+    metaDescription:
+      "Convert PDF pages to high-quality JPG images at 300 DPI — print-ready resolution for social media, presentations, and design work. Free.",
+    intro:
+      "Most PDF-to-JPG converters spit out 72 DPI thumbnails — fine for screen viewing, useless for printing or zooming. Our converter renders pages at 300 DPI by default (print-ready) and lets you push to 600 DPI for high-detail work like architectural drawings or photo portfolios. Pick the resolution, pick which pages, get sharp JPGs ready for Instagram, Keynote, or your design comp.",
+    whatToKnow: [
+      {
+        title: "What 300 DPI means in practice",
+        body: "DPI = dots per inch. A US Letter page (8.5×11\") at 300 DPI is 2,550 × 3,300 pixels — sharp on phones, tablets, laptops, and standard prints up to 8×10. At 600 DPI it's 5,100 × 6,600 — magazine and book printing quality.",
+      },
+      {
+        title: "When to use JPG vs. PNG",
+        body: "JPG: photos, color illustrations, anything with gradients. Smaller files, lossy compression. PNG: text-heavy pages, line art, screenshots, transparency. Larger files, lossless. For PDF pages with both, JPG is usually fine.",
+      },
+      {
+        title: "File size at different DPIs",
+        body: "Same Letter-size page: 72 DPI ≈ 50 KB · 150 DPI ≈ 200 KB · 300 DPI ≈ 800 KB · 600 DPI ≈ 3 MB. A 100-page PDF at 600 DPI becomes 300 MB of JPGs — pick resolution accordingly.",
+      },
+      {
+        title: "Color profiles",
+        body: "Output is sRGB JPG, which is the right color space for screens, web, and most consumer printing. For commercial print (CMYK) you'll need to color-convert in Photoshop after — JPG is RGB by definition.",
+      },
+    ],
+    steps: [
+      { name: "Upload your PDF", text: "Drop the PDF you want to convert." },
+      { name: "Pick resolution", text: "300 DPI for most uses. 600 DPI for high-detail printing or zooming. 150 DPI for small file sizes." },
+      { name: "Pick pages", text: "All pages, a range, or specific pages." },
+      { name: "Download as ZIP", text: "Multiple JPGs come zipped. Single page comes as a single .jpg file." },
+    ],
+    tips: [
+      "For Instagram posts, 1080×1080 px at any DPI is fine — they re-encode. For grid posts, export at 300 DPI then crop in Photoshop.",
+      "For Keynote / PowerPoint, 150 DPI is usually plenty unless you're zooming. Saves on file size.",
+      "For blog featured images, 1200×630 at 72–150 DPI is standard. Save bandwidth.",
+      "Always keep the source PDF — JPG is lossy and you can't go back to vector quality.",
+    ],
+    faq: [
+      {
+        q: "What's the highest resolution I can export?",
+        a: "600 DPI on free, up to 1200 DPI on Pro. For most purposes 300 DPI is plenty.",
+      },
+      {
+        q: "Can I export specific pages only?",
+        a: "Yes — pick a single page, a range (5–10), or non-contiguous pages (1, 3, 5).",
+      },
+      {
+        q: "Does it preserve the original page size?",
+        a: "Yes — a Letter-size page stays Letter-size at the chosen DPI. A4 stays A4. Custom sizes are preserved.",
+      },
+      {
+        q: "Why are my JPG files so big?",
+        a: "Probably exporting at 600 DPI when you need 300. Lower the DPI and re-export.",
+      },
+      {
+        q: "Can I batch-convert multiple PDFs?",
+        a: "Pro and Business plans support batch processing. Free and Plus convert one PDF at a time.",
+      },
+    ],
+    related: ["compress-pdf-for-email", "pdf-to-word-without-losing-formatting", "merge-pdf-for-portfolio"],
+    ctaLabel: "Convert your PDF to high-quality JPG",
+  },
 ];
 
 export function findUseCase(slug: string): UseCase | undefined {
