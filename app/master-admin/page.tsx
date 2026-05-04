@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, FileText, Activity } from "lucide-react";
+import { Plus, FileText, Activity, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/utils";
@@ -19,6 +19,9 @@ export default async function AdminHome() {
   return (
     <>
       <div className="mb-6 flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link href="/master-admin/usage"><BarChart3 className="h-4 w-4" /> Site usage</Link>
+        </Button>
         <Button asChild variant="outline" size="sm">
           <Link href="/master-admin/ai-cost"><Activity className="h-4 w-4" /> AI cost dashboard</Link>
         </Button>
