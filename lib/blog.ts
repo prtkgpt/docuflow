@@ -1422,6 +1422,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { q: "Does OCR work on multi-page PDFs?", a: "Yes — every page gets processed independently. Free up to 25 MB; Pro up to 250 MB." },
     ],
   },
+];
 
 
 // Helper used by the language-pair posts above. Generated programmatically
