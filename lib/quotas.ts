@@ -60,9 +60,12 @@ export type AiPlanLimits = {
   maxOutputTokens: number;     // cap on the model's response (max_tokens)
 };
 
-export function getAiLimits(plan: PlanId, kind: "summarize" | "chat"): AiPlanLimits {
+export function getAiLimits(plan: PlanId, kind: "summarize" | "chat" | "translate"): AiPlanLimits {
   const p = getPlan(plan);
-  const perMonth = kind === "summarize" ? p.ai.summariesPerMonth : p.ai.chatPerMonth;
+  const perMonth =
+    kind === "summarize" ? p.ai.summariesPerMonth :
+    kind === "chat"      ? p.ai.chatPerMonth :
+    p.ai.translatesPerMonth;
   return {
     perMonth,
     maxInputTokens: p.ai.maxInputTokensPerDoc,
@@ -90,7 +93,7 @@ export type AiCheckResult =
 // schema migration in this commit).
 export async function checkAiLimit(
   userId: string,
-  kind: "summarize" | "chat",
+  kind: "summarize" | "chat" | "translate",
 ): Promise<AiCheckResult> {
   const quota = await getUserQuota(userId);
   const limits = getAiLimits(quota.plan, kind);
@@ -103,7 +106,9 @@ export async function checkAiLimit(
       message:
         kind === "chat"
           ? "Chat with PDF requires Kitty Plus ($2.99/mo) or higher. Upgrade to start chatting with your PDFs."
-          : "AI summaries require a paid plan.",
+          : kind === "translate"
+            ? "PDF translation requires a paid plan."
+            : "AI summaries require a paid plan.",
     };
   }
 
@@ -141,6 +146,14 @@ export async function checkAiLimit(
     }
   }
 
+  const noun =
+    kind === "summarize" ? (limits.perMonth === 1 ? "summary" : "summaries") :
+    kind === "chat"      ? "chat questions" :
+    (limits.perMonth === 1 ? "translation" : "translations");
+  const upsell =
+    kind === "summarize" ? "25 summaries" :
+    kind === "chat"      ? "100 questions" :
+    "20 translations";
   return {
     ok: false,
     code: "AI_MONTHLY_LIMIT",
@@ -149,8 +162,8 @@ export async function checkAiLimit(
     limit: limits.perMonth,
     message:
       quota.plan === "free"
-        ? `You've used your ${limits.perMonth} free ${kind === "summarize" ? "summary" : "chat questions"} for this month. Upgrade to Kitty Plus ($2.99/mo) for ${kind === "summarize" ? "25 summaries" : "100 questions"} per month — or add an AI credit pack from $5.`
-        : `You've reached this month's ${kind === "summarize" ? "summary" : "chat"} limit on your plan. ${kind === "chat" ? "Add an AI credit pack from $5 or upgrade." : "Upgrade for more summaries."}`,
+        ? `You've used your ${limits.perMonth} free ${noun} for this month. Upgrade to Kitty Plus ($2.99/mo) for ${upsell} per month — or add an AI credit pack from $5.`
+        : `You've reached this month's ${noun} limit on your plan. ${kind === "chat" ? "Add an AI credit pack from $5 or upgrade." : "Upgrade for more."}`,
   };
 }
 
@@ -158,9 +171,10 @@ export async function checkAiLimit(
 // /api/ai-usage endpoint.
 export async function getAiUsageThisMonth(userId: string) {
   const since = periodStart("month");
-  const [summariesUsed, chatUsed, user, quota] = await Promise.all([
+  const [summariesUsed, chatUsed, translatesUsed, user, quota] = await Promise.all([
     prisma.aIRequest.count({ where: { userId, requestType: "summarize", createdAt: { gte: since } } }),
     prisma.aIRequest.count({ where: { userId, requestType: "chat", createdAt: { gte: since } } }),
+    prisma.aIRequest.count({ where: { userId, requestType: "translate", createdAt: { gte: since } } }),
     prisma.user.findUnique({ where: { id: userId }, select: { chatQuestionsCredits: true } }),
     getUserQuota(userId),
   ]);
@@ -174,6 +188,8 @@ export async function getAiUsageThisMonth(userId: string) {
     summariesLimit: plan.ai.summariesPerMonth,
     chatUsed,
     chatLimit: plan.ai.chatPerMonth,
+    translatesUsed,
+    translatesLimit: plan.ai.translatesPerMonth,
     chatCredits: user?.chatQuestionsCredits ?? 0,
     resetDate: reset.toISOString(),
   };

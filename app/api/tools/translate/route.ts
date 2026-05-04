@@ -20,9 +20,8 @@ const Body = z.object({
   to: z.string().min(2).max(8),
 });
 
-// PDF translation reuses the summarize quota for v1 — both are
-// "AI document operation" with similar cost profile (full document
-// in, full document out). Track separately later if abuse appears.
+// PDF translation has its own monthly counter so it doesn't eat the
+// summarize budget. Free=2/mo so users can actually try the tool.
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions).catch(() => null);
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
@@ -32,7 +31,7 @@ export async function POST(req: NextRequest) {
   try {
     const { fileId, from, to } = Body.parse(await req.json());
 
-    const check = await checkAiLimit(userId, "summarize");
+    const check = await checkAiLimit(userId, "translate");
     if (!check.ok) {
       return NextResponse.json(
         { error: check.message, code: check.code, plan: check.plan, used: check.used, limit: check.limit },
@@ -65,7 +64,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId,
         fileId: file.id,
-        requestType: "summarize",
+        requestType: "translate",
         prompt: `translate ${result.fromName} → ${result.toName}`,
         response: result.chunks.map((c) => c.translated).join("\n\n").slice(0, 8000),
         tokensUsed: result.inputTokens + result.outputTokens,
@@ -96,7 +95,6 @@ export async function POST(req: NextRequest) {
       where: { userId },
       update: {
         plan: sub?.plan ?? "free",
-        summariesUsed: { increment: 1 },
         inputTokensUsed: { increment: result.inputTokens },
         outputTokensUsed: { increment: result.outputTokens },
         estimatedCostMonthCents: { increment: usdToCents(costUsd) },
@@ -104,7 +102,6 @@ export async function POST(req: NextRequest) {
       create: {
         userId,
         plan: sub?.plan ?? "free",
-        summariesUsed: 1,
         inputTokensUsed: result.inputTokens,
         outputTokensUsed: result.outputTokens,
         estimatedCostMonthCents: usdToCents(costUsd),

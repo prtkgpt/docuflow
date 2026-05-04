@@ -5,6 +5,7 @@ export type PlanAiLimits = {
   // Calls per UTC month, by feature.
   summariesPerMonth: number;
   chatPerMonth: number;
+  translatesPerMonth: number;
   // Cap how much extracted PDF text we'll send to the model in one call,
   // measured in tokens. Used to truncate the document or to bound the
   // retrieval context for chat.
@@ -42,6 +43,7 @@ export const PLANS: Plan[] = [
     ai: {
       summariesPerMonth: 1,
       chatPerMonth: 3,
+      translatesPerMonth: 2,
       maxInputTokensPerDoc: 8_000,
       maxOutputTokensPerAnswer: 400,
     },
@@ -57,6 +59,7 @@ export const PLANS: Plan[] = [
       "Send for signature — 10 envelopes per month",
       "1 AI summary per month",
       "3 PDF chat questions per month",
+      "2 PDF translations per month",
     ],
     cta: "Start free",
     watermark: true,
@@ -72,6 +75,7 @@ export const PLANS: Plan[] = [
     ai: {
       summariesPerMonth: 25,
       chatPerMonth: 100,
+      translatesPerMonth: 20,
       maxInputTokensPerDoc: 75_000,
       maxOutputTokensPerAnswer: 600,
     },
@@ -81,6 +85,7 @@ export const PLANS: Plan[] = [
       "Send for signature — 50 envelopes per month",
       "25 AI summaries per month",
       "100 PDF chat questions per month",
+      "20 PDF translations per month",
       "Up to 75,000 tokens per document",
       "No watermark",
       "Saved file history",
@@ -101,6 +106,7 @@ export const PLANS: Plan[] = [
     ai: {
       summariesPerMonth: 100,
       chatPerMonth: 500,
+      translatesPerMonth: 80,
       maxInputTokensPerDoc: 200_000,
       maxOutputTokensPerAnswer: 900,
     },
@@ -110,6 +116,7 @@ export const PLANS: Plan[] = [
       "Send for signature — 200 envelopes per month",
       "100 AI summaries per month",
       "500 PDF chat questions per month",
+      "80 PDF translations per month",
       "Up to 200,000 tokens per document",
       "OCR PDF",
       "Batch processing",
@@ -129,6 +136,7 @@ export const PLANS: Plan[] = [
     ai: {
       summariesPerMonth: 250,
       chatPerMonth: 1000,
+      translatesPerMonth: 200,
       maxInputTokensPerDoc: 250_000,
       maxOutputTokensPerAnswer: 1200,
     },
@@ -138,6 +146,7 @@ export const PLANS: Plan[] = [
       "Send for signature — 1,000 envelopes per month",
       "250 AI summaries per month (shared)",
       "1,000 PDF chat questions per month (shared)",
+      "200 PDF translations per month (shared)",
       "Up to 250,000 tokens per document",
       "Shared workspace",
       "Admin controls",
