@@ -116,7 +116,10 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [signPrompt, setSignPrompt] = useState<{ x: number; y: number } | null>(null);
+  // signPrompt carries an optional `editingId` so a double-click on an
+  // existing signature can re-open the dialog and replace its payload
+  // instead of creating a new annotation.
+  const [signPrompt, setSignPrompt] = useState<{ x: number; y: number; editingId?: string } | null>(null);
   const [linkPrompt, setLinkPrompt] = useState<{ x: number; y: number } | null>(null);
   const [showPages, setShowPages] = useState(true);
   // Hide pages sidebar by default on small screens.
@@ -381,7 +384,9 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
   function onAnnotationMouseDown(e: React.MouseEvent, a: Annotation) {
     e.stopPropagation();
     if (tool === "eraser") return deleteAnnotation(a.id);
-    if (tool !== "select") return;
+    // Existing annotations are draggable from any tool — clicking on a
+    // placed signature or text shouldn't try to add a new one. Selecting
+    // also exposes the resize handles for the rectangular types.
     setSelectedId(a.id);
     setEditingTextId(null);
     const { x, y } = rel(e);
@@ -753,7 +758,14 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
                         commitInteraction();
                       }}
                       onDoubleClick={() => {
-                        if ((a.type === "text" || a.type === "note") && tool === "select") setEditingTextId(a.id);
+                        // Double-click works regardless of which tool is
+                        // active so the user can re-edit what they just placed.
+                        if (a.type === "text" || a.type === "note") {
+                          setEditingTextId(a.id);
+                        } else if (a.type === "signature") {
+                          // Re-open SignDialog to replace the payload in place.
+                          setSignPrompt({ x: a.x, y: a.y, editingId: a.id });
+                        }
                       }}
                       onNoteChange={(text) => updateAnnotation(a.id, (cur) => (cur.type === "note" ? { ...cur, text } : cur))}
                     />
@@ -770,17 +782,39 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
       {signPrompt && (
         <SignDialog
           onClose={() => setSignPrompt(null)}
+          initial={(() => {
+            if (!signPrompt.editingId) return undefined;
+            const existing = annotations.find((a) => a.id === signPrompt.editingId);
+            if (!existing || existing.type !== "signature") return undefined;
+            if (existing.dataUrl) return { kind: "image", value: existing.dataUrl };
+            if (existing.text) return { kind: "text", value: existing.text };
+            return undefined;
+          })()}
           onSubmit={(payload) => {
-            addAnnotation({
-              id: crypto.randomUUID(),
-              type: "signature",
-              page,
-              x: signPrompt.x,
-              y: signPrompt.y,
-              w: 0.25,
-              h: 0.06,
-              ...(payload.kind === "text" ? { text: payload.value } : { dataUrl: payload.value }),
-            });
+            if (signPrompt.editingId) {
+              // Re-edit an existing signature in place — keep position
+              // and size, just swap the payload.
+              updateAnnotation(signPrompt.editingId, (a) => {
+                if (a.type !== "signature") return a;
+                return {
+                  ...a,
+                  text: payload.kind === "text" ? payload.value : undefined,
+                  dataUrl: payload.kind === "image" ? payload.value : undefined,
+                };
+              });
+              commitInteraction();
+            } else {
+              addAnnotation({
+                id: crypto.randomUUID(),
+                type: "signature",
+                page,
+                x: signPrompt.x,
+                y: signPrompt.y,
+                w: 0.25,
+                h: 0.06,
+                ...(payload.kind === "text" ? { text: payload.value } : { dataUrl: payload.value }),
+              });
+            }
             setSignPrompt(null);
           }}
         />
@@ -1012,7 +1046,10 @@ function AnnotationView({
 }) {
   const px = (v: number) => v * pageSize.w;
   const py = (v: number) => v * pageSize.h;
-  const cursor = tool === "select" ? "move" : tool === "eraser" ? "not-allowed" : "default";
+  // Existing annotations are always draggable (any tool, except eraser
+  // which deletes on click). The crosshair cursor only applies to empty
+  // canvas regions where a new annotation would be created.
+  const cursor = tool === "eraser" ? "not-allowed" : "move";
 
   if (a.type === "text") {
     const fontPx = a.fontSize * (pageSize.w / 612);
@@ -1264,12 +1301,17 @@ function RectFrame({
 function SignDialog({
   onClose,
   onSubmit,
+  initial,
 }: {
   onClose: () => void;
   onSubmit: (p: { kind: "text" | "image"; value: string }) => void;
+  // Pre-fill when re-opening to edit an existing signature.
+  initial?: { kind: "text" | "image"; value: string };
 }) {
-  const [tab, setTab] = useState<"type" | "draw" | "upload">("type");
-  const [text, setText] = useState("");
+  const [tab, setTab] = useState<"type" | "draw" | "upload">(
+    initial?.kind === "image" ? "draw" : "type",
+  );
+  const [text, setText] = useState(initial?.kind === "text" ? initial.value : "");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
 
