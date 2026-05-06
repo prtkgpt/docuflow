@@ -267,7 +267,12 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
 
   // Overlay handlers
   function onOverlayMouseDown(e: React.MouseEvent) {
-    if (loading || pageSize.w === 0) return;
+    if (loading) return;
+    if (typeof window !== "undefined" && (window as any).__pdfEditorDebug) {
+      // Visible only when devtools sets the flag — for diagnosing
+      // "click does nothing" reports without spamming the console.
+      console.debug("[editor] mousedown", { tool, pageSize, page });
+    }
     setSelectedId(null);
     setEditingTextId(null);
     const { x, y } = rel(e);
@@ -742,8 +747,10 @@ export function PdfEditor({ fileUrl, fileId, fileName }: Props) {
                       onTextChange={(text) => updateAnnotation(a.id, (cur) => (cur.type === "text" ? { ...cur, text } : cur))}
                       onTextBlur={() => {
                         setEditingTextId(null);
-                        if (a.type === "text" && a.text.trim() === "") deleteAnnotation(a.id);
-                        else commitInteraction();
+                        // Don't auto-delete on blur. A user who clicked but
+                        // didn't type yet should still see a placeholder
+                        // marker. Removal is via the trash button or eraser.
+                        commitInteraction();
                       }}
                       onDoubleClick={() => {
                         if ((a.type === "text" || a.type === "note") && tool === "select") setEditingTextId(a.id);
@@ -1046,8 +1053,17 @@ function AnnotationView({
       );
     }
     return (
-      <div onMouseDown={onMouseDown} onDoubleClick={onDoubleClick} style={baseStyle}>
-        {a.text || <span className="text-slate-300">Empty text</span>}
+      <div
+        onMouseDown={onMouseDown}
+        onDoubleClick={onDoubleClick}
+        style={{
+          ...baseStyle,
+          // Empty annotations get a dashed placeholder so the user can
+          // see where their click landed and double-click to edit again.
+          ...(a.text ? {} : { outline: "1px dashed #94a3b8", minWidth: 80 }),
+        }}
+      >
+        {a.text || <span className="text-slate-400">Click to edit</span>}
       </div>
     );
   }
