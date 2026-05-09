@@ -1,6 +1,8 @@
 // Static blog catalog. New posts added via /master-admin CMS land in the
 // `BlogPost` Prisma table; the public blog routes merge both sources.
 
+import { LANGUAGES } from "@/lib/i18n/languages";
+
 export type BlogPostBlock =
   | { type: "p"; text: string }
   | { type: "h2"; text: string }
@@ -799,16 +801,16 @@ export const BLOG_POSTS: BlogPost[] = [
       { q: "How accurate is it?", a: "Excellent for everyday documents. For legal, medical, or technical content, have a native speaker review." },
     ],
   },
-  ...buildTranslationPost("hindi", "english", "Hindi", "English"),
-  ...buildTranslationPost("spanish", "english", "Spanish", "English"),
-  ...buildTranslationPost("chinese", "english", "Chinese", "English"),
-  ...buildTranslationPost("french", "english", "French", "English"),
-  ...buildTranslationPost("arabic", "english", "Arabic", "English"),
-  ...buildTranslationPost("japanese", "english", "Japanese", "English"),
-  ...buildTranslationPost("korean", "english", "Korean", "English"),
-  ...buildTranslationPost("german", "english", "German", "English"),
-  ...buildTranslationPost("portuguese", "english", "Portuguese", "English"),
-  ...buildTranslationPost("russian", "english", "Russian", "English"),
+  // Auto-generate both directions (foreign→English and English→foreign)
+  // for every non-English language. Matches the 48 translate-pdf landing
+  // pages in app/sitemap.ts so we don't end up with /blog/...-to-italian
+  // 404s when the corresponding /tools page exists.
+  ...LANGUAGES
+    .filter((l) => l.code !== "en")
+    .flatMap((l) => [
+      ...buildTranslationPost(l.slug, "english", l.name, "English"),
+      ...buildTranslationPost("english", l.slug, "English", l.name),
+    ]),
 
   // ---------------------------------------------------------------------
   // Bulk how-to expansion — 12 fresh long-tail posts (May 2026)
